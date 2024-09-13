@@ -10,7 +10,7 @@ This repository contains the code, and brief introduction of our approach used f
 
 The robot system used in the competition consists of:
 
-- Collebrative robot: [Universal Robots UR10e](https://www.universal-robots.com/products/ur10e/)
+- Collebrative robot: [Universal Robots UR10e](https://www.universal-robots.com/products/ur10-robot/)
 - Adaptive gripper: [Robotiq Hand-E](https://robotiq.com/products/adaptive-grippers#Hand-E)
 - Fingertip: [3D-printed fingertip](src/meshes/fingertip.STEP)
 - RGB-D Camera: [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)
