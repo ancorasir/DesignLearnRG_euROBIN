@@ -15,7 +15,7 @@ The robot system used in the competition consists of:
 - Fingertip: [3D-printed fingertip](src/meshes/fingertip.STEP)
 - RGB-D Camera: [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)
 - Camera bracket: [CNC-milled camera bracket](src/meshes/camera_bracket.STEP)
-- Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/fiveray-m20/en)
+- Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
 
 ## Software Dependencies
 
