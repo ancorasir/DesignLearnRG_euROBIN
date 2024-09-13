@@ -12,9 +12,9 @@ The robot system used in the competition consists of:
 
 - Collebrative robot: [Universal Robots UR10e](https://www.universal-robots.com/products/ur10-robot/)
 - Adaptive gripper: [Robotiq Hand-E](https://robotiq.com/products/adaptive-grippers#Hand-E)
-- Fingertip: [3D-printed fingertip](src/meshes/fingertip.STEP)
+- Fingertip: [3D-printed fingertip](https://cad.onshape.com/documents/43edc50e275c72eace7a4839)
 - RGB-D Camera: [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)
-- Camera bracket: [CNC-milled camera bracket](src/meshes/camera_bracket.STEP)
+- Camera bracket: [CNC-milled camera bracket](https://cad.onshape.com/documents/01d4267b0af8aab9d6acb1ab)
 - Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
 
 ## Software Dependencies
