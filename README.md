@@ -1,4 +1,4 @@
-# Design and Learning Research Group Submission - euROBIN MSVC @ IROS 2024
+# Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
 [[Report Page]](https://msvc-dlrg.github.io) | [[Video]]()
 
