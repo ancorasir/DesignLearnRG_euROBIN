@@ -142,16 +142,15 @@ class RLDSDataset:
         )
 
 def main(robot:str="ur10e") -> None:
-    cam_dict = yaml.load(open("config/camera.yaml"), Loader=yaml.FullLoader)
+    cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
 
     robot_urdf_dict = {
         "panda": "franka_description/panda.urdf",
         "ur10e": "ur_description/ur10e.urdf",
-    }
-
-    gripper_urdf_dict = {
-        "robotiq_arg85": "robotiq_arg85_description/robotiq_arg85.urdf",
-        "robotiq_hande": "robotiq_hande_description/robotiq_hande.urdf",
+        "panda_robotiq_arg85": "franka_description/panda_robotiq_arg85.urdf",
+        "panda_robotiq_hande": "franka_description/panda_robotiq_hande.urdf",
+        "ur10e_robotiq_arg85": "ur10e_description/ur10e_robotiq_arg85.urdf",
+        "ur10e_robotiq_hande": "ur10e_description/ur10e_robotiq_hande.urdf",
     }
 
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
@@ -167,5 +166,5 @@ def main(robot:str="ur10e") -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main("panda_robotiq_hande")
     rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))

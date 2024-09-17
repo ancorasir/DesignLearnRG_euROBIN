@@ -1,0 +1,38 @@
+rs-d435i:
+- name: "camera"
+  type: "realsense"
+  device: "d435i"
+  width: 640
+  height: 480
+  fps: 30
+  depth: true
+  color: true
+  imu: true
+  imu_rate: 200
+  imu_topic: "/imu/data"
+  depth_topic: "/camera/depth/image_raw"
+  color_topic: "/camera/color/image_raw"
+  depth_info_topic: "/camera/depth/camera_info"
+  color_info_topic: "/camera/color/camera_info"
+  imu_info_topic: "/imu/info"
+  depth_frame_id: "camera_depth_frame"
+  color_frame_id: "camera_color_frame"
+  imu_frame_id: "camera_imu_frame"
+  depth_optical_frame_id: "camera_depth_optical_frame"
+  color_optical_frame_id: "camera_color_optical_frame"
+  imu_optical_frame_id: "camera_imu_optical_frame"
+  depth_encoding: "16UC1"
+  color_encoding: "rgb8"
+  depth_scale: 0.001
+  color_scale: 1.0
+  depth_focal_length: 1.93
+  depth_baseline: 0.05
+  color_focal_length: 1.93
+  color_baseline: 0.05
+  depth_distortion_model: "plumb_bob"
+  color_distortion_model: "plumb_bob"
+  depth_distortion_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
+  color_distortion_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
+  depth_camera_matrix: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  color_camera_matrix: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  depth_rectification_matrix: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
