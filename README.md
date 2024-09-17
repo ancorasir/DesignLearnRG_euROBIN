@@ -45,6 +45,13 @@ cmake ..
 make
 ```
 
+An interface is provided in `interface/`, which consists of 3D visualization and data curves of robot. To open the interface, run:
+
+```bash
+cd interface
+python interface.py
+```
+
 ## Data Availability
 
 The data recorded during trials is available at [Google Drive](), which includes:
