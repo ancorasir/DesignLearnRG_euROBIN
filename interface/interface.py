@@ -96,7 +96,6 @@ class RLDSDataset:
             Tabs,
             SelectionPanel,
             TimePanel,
-            TextDocumentView
         )
 
         return Blueprint(
@@ -146,11 +145,11 @@ def main(robot:str="ur10e") -> None:
 
     robot_urdf_dict = {
         "panda": "franka_description/panda.urdf",
-        "ur10e": "ur_description/ur10e.urdf",
         "panda_robotiq_arg85": "franka_description/panda_robotiq_arg85.urdf",
         "panda_robotiq_hande": "franka_description/panda_robotiq_hande.urdf",
-        "ur10e_robotiq_arg85": "ur10e_description/ur10e_robotiq_arg85.urdf",
-        "ur10e_robotiq_hande": "ur10e_description/ur10e_robotiq_hande.urdf",
+        "ur10e": "ur_description/ur10e.urdf",
+        "ur10e_robotiq_arg85": "ur_description/ur10e_robotiq_arg85.urdf",
+        "ur10e_robotiq_hande": "ur_description/ur10e_robotiq_hande.urdf",
     }
 
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
@@ -166,5 +165,5 @@ def main(robot:str="ur10e") -> None:
 
 
 if __name__ == "__main__":
-    main("panda_robotiq_hande")
+    main("ur10e_robotiq_hande")
     rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
