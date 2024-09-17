@@ -23,9 +23,11 @@ And there are also the [task board](docs/task_board.pdf) and [Hikvision NP-Y1-S 
 
 ## Software Dependencies
 
-The code is developed with C/C++ and tested on Ubuntu 20.04 with the following dependencies:
+The code is developed with C/C++ and Python, and tested on Ubuntu 20.04 with the following dependencies:
 
+- [RTDE]
 - [Intel RealSense SDK 2.0](https://www.intelrealsense.com/sdk-2/)
+- [Rerun](https://rerun.io)
 
 ## Quick Start
 
