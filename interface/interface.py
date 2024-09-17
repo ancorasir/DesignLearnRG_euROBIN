@@ -140,7 +140,7 @@ class RLDSDataset:
             TimePanel(expanded=False),
         )
 
-def main(robot:str="ur10e") -> None:
+def main(robot:str="ur10e_robotiq_hande") -> None:
     cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
 
     robot_urdf_dict = {
@@ -165,5 +165,5 @@ def main(robot:str="ur10e") -> None:
 
 
 if __name__ == "__main__":
-    main("ur10e_robotiq_hande")
+    main("ur10e_robotiq_arg85")
     rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
