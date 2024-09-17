@@ -149,6 +149,11 @@ def main(robot:str="ur10e") -> None:
         "ur10e": "ur_description/ur10e.urdf",
     }
 
+    gripper_urdf_dict = {
+        "robotiq_arg85": "robotiq_arg85_description/robotiq_arg85.urdf",
+        "robotiq_hande": "robotiq_hande_description/robotiq_hande.urdf",
+    }
+
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
     rlds_scene = RLDSDataset(cam_dict=cam_dict)
     

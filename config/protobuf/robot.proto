@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package robot;
+
+message Robot {
+    repeated double joint_positions = 1;
+    repeated double joint_velocities = 2;
+    repeated double tcp_translation = 3;
+    repeated double tcp_orientation = 4;
+    repeated double gripper_position = 5;
+    repeated double gripper_force = 6;
+}
