@@ -19,6 +19,8 @@ The robot system used in the competition consists of:
 - Camera bracket: [CNC-milled camera bracket](https://cad.onshape.com/documents/01d4267b0af8aab9d6acb1ab)
 - Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
 
+And there are also the [task board](docs/task_board.pdf) and [Hikvision NP-Y1-S smoke detector](https://detail.tmall.com/item.htm?id=654643896582) used as task objects.
+
 ## Software Dependencies
 
 The code is developed with C/C++ and tested on Ubuntu 20.04 with the following dependencies:
