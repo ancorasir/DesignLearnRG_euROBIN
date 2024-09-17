@@ -2,7 +2,7 @@
 
 [[Report Page]](https://msvc-dlrg.github.io) | [[Video]]()
 
-<img src="assets/images/teaser.jpg" width="100%">
+![Teaser Image](assets/images/teaser.jpg)
 
 ## Overview
 
@@ -44,8 +44,6 @@ cd build
 cmake ..
 make
 ```
-
-## 
 
 ## Data Availability
 
