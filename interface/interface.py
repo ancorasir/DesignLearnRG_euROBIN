@@ -140,16 +140,18 @@ class RLDSDataset:
             TimePanel(expanded=False),
         )
 
-def main(robot:str="ur10e_robotiq_hande") -> None:
+def main(robot:str="ur10e_hande") -> None:
     cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
 
     robot_urdf_dict = {
         "panda": "franka_description/panda.urdf",
-        "panda_robotiq_arg85": "franka_description/panda_robotiq_arg85.urdf",
-        "panda_robotiq_hande": "franka_description/panda_robotiq_hande.urdf",
+        "panda_arg85": "franka_description/panda_arg85.urdf",
+        "panda_hande": "franka_description/panda_hande.urdf",
+        "panda_hande_d435i": "franka_description/panda_hande_d435i.urdf",
         "ur10e": "ur_description/ur10e.urdf",
-        "ur10e_robotiq_arg85": "ur_description/ur10e_robotiq_arg85.urdf",
-        "ur10e_robotiq_hande": "ur_description/ur10e_robotiq_hande.urdf",
+        "ur10e_arg85": "ur_description/ur10e_arg85.urdf",
+        "ur10e_hande": "ur_description/ur10e_hande.urdf",
+        "ur10e_hande_d435i": "ur_description/ur10e_hande_d435i.urdf",
     }
 
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
@@ -165,5 +167,5 @@ def main(robot:str="ur10e_robotiq_hande") -> None:
 
 
 if __name__ == "__main__":
-    main("ur10e_robotiq_arg85")
+    main("panda_hande_d435i")
     rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
