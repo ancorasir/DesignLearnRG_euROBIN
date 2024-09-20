@@ -167,5 +167,5 @@ def main(robot:str="ur10e_hande") -> None:
 
 
 if __name__ == "__main__":
-    main("panda_hande_d435i")
+    main("ur10e_hande_d435i")
     rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
