@@ -60,7 +60,6 @@ def blueprint_row_images(origins):
         ),
     )
 
-
 def extract_extrinsics(pose: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Takes a vector with dimension 6 and extracts the translation vector and the rotation matrix"""
     translation = pose[:3]
@@ -69,7 +68,7 @@ def extract_extrinsics(pose: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def path_to_link(link: int) -> str:
-    return "/".join(f"panda_link{i}" for i in range(link + 1))
+    return "/".join(f"link{i}" for i in range(link + 1))
 
 
 def log_angle_rot(

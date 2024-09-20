@@ -165,6 +165,10 @@ def main(robot:str="ur10e_hande") -> None:
     urdf_logger.log()
     rlds_scene.log_robot_dataset(urdf_logger.entity_to_transform)
 
+    print("urdf_logger.entity_to_transform", urdf_logger.entity_to_transform)
+
+    print
+
 
 if __name__ == "__main__":
     main("ur10e_hande_d435i")

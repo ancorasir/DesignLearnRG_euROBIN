@@ -63,7 +63,9 @@ class URDFLogger:
         if joint.origin is not None and joint.origin.rpy is not None:
             rotation = st.Rotation.from_euler("xyz", joint.origin.rpy).as_matrix()
 
-        self.entity_to_transform[self.root_path + entity_path] = (translation, rotation)
+        if joint.type != "fixed":
+            # fixed joint, no need to add to the transform
+            self.entity_to_transform[self.root_path + entity_path] = (translation, rotation)
         rr.log(self.root_path + entity_path, rr.Transform3D(translation=translation, mat3x3=rotation))
 
     def log_visual(self, entity_path: str, visual: urdf_parser.Visual) -> None:
