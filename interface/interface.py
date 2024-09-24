@@ -10,10 +10,6 @@ import rerun as rr
 import argparse
 import yaml
 
-# Hide those pesky warnings.
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-# import tensorflow_datasets as tfds  # noqa: E402
-
 
 class RobotVis:
     def __init__(self, cam_dict: dict[str, dict[str, str]]):
@@ -98,9 +94,7 @@ class RobotVis:
                 )
                 rr.log(
                     f"cameras/{cam}/depth",
-                    rr.DepthImage(
-                        depth_img, meter=10000
-                    ),
+                    rr.DepthImage(depth_img, meter=10000),
                 )
 
     def log_action_dict(
@@ -146,7 +140,7 @@ class RobotVis:
         depth_extrinsics = {}
         depth_intrinsics = {}
         color_imgs["rs-d435i"] = cv2.imread("../temp/color.png")
-        depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png",cv2.IMREAD_UNCHANGED)
+        depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png", cv2.IMREAD_UNCHANGED)
         color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
         color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
         depth_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
@@ -158,7 +152,14 @@ class RobotVis:
         depth_extrinsics["rs-d435"] = [0.1, 0.5, 0.5, 0, 0, 0]
         depth_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
 
-        self.log_camera(color_imgs, depth_imgs, color_extrinsics, color_intrinsics, depth_extrinsics, depth_intrinsics)
+        self.log_camera(
+            color_imgs,
+            depth_imgs,
+            color_extrinsics,
+            color_intrinsics,
+            depth_extrinsics,
+            depth_intrinsics,
+        )
         # self.log_action_dict()
 
     #         for episode in self.ds:
