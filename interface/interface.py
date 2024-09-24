@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import cv2
 from pathlib import Path
 import numpy as np
 from rerun_loader_urdf import URDFLogger
@@ -18,10 +19,6 @@ class RobotVis:
     def __init__(self, cam_dict: dict[str, dict[str, str]]):
         self.prev_joint_origins = None
         self.cam_dict = cam_dict
-
-    def log_images(self, imgs: dict[str, np.ndarray]):
-        for cam in self.cam_dict.keys():
-            rr.log(f"/cameras/{cam}", rr.Image(imgs[cam]))
 
     def log_robot_states(
         self,
@@ -51,13 +48,60 @@ class RobotVis:
 
     def log_camera(
         self,
-        color_dict: dict[str, np.ndarray],
-        depth_dict: dict[str, np.ndarray],
-        extrinsics_dict: dict[str, np.ndarray],
-        intrinsic_dict: dict[str, np.ndarray],
+        color_imgs: dict[str, np.ndarray],
+        depth_imgs: dict[str, np.ndarray],
+        color_extrinsics: dict[str, np.ndarray],
+        color_intrinsics: dict[str, np.ndarray],
+        depth_extrinsics: dict[str, np.ndarray],
+        depth_intrinsics: dict[str, np.ndarray],
     ):
-        for cam in self.cam_dict:
+        for cam in self.cam_dict.keys():
+            color_extrinsic = color_extrinsics[cam]
+            color_intrinsic = color_intrinsics[cam]
+            color_img = color_imgs[cam]
+            if color_img is not None:
+                rr.log(
+                    f"/cameras/{cam}/color",
+                    rr.Pinhole(
+                        image_from_camera=color_intrinsic,
+                    ),
+                )
+                rr.log(
+                    f"/cameras/{cam}/color",
+                    rr.Transform3D(
+                        translation=np.array(color_extrinsic[:3]),
+                        mat3x3=Rotation.from_euler(
+                            "xyz", np.array(color_extrinsic[3:])
+                        ).as_matrix(),
+                    ),
+                )
+                rr.log(f"/cameras/{cam}/color", rr.Image(color_imgs[cam]))
 
+            depth_extrinsic = depth_extrinsics[cam]
+            depth_intrinsic = depth_intrinsics[cam]
+            depth_img = depth_imgs[cam]
+            if depth_img is not None:
+                rr.log(
+                    f"/cameras/{cam}/depth",
+                    rr.Pinhole(
+                        image_from_camera=depth_intrinsic,
+                    ),
+                )
+                rr.log(
+                    f"/cameras/{cam}/depth",
+                    rr.Transform3D(
+                        translation=np.array(depth_extrinsic[:3]),
+                        mat3x3=Rotation.from_euler(
+                            "xyz", np.array(depth_extrinsic[3:])
+                        ).as_matrix(),
+                    ),
+                )
+                rr.log(
+                    f"cameras/{cam}/depth",
+                    rr.DepthImage(
+                        depth_img, meter=10000
+                    ),
+                )
 
     def log_action_dict(
         self,
@@ -90,15 +134,33 @@ class RobotVis:
             rr.Scalar(gripper_velocity),
         )
 
-    def run(
-        self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]
-    ):
+    def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
         cur_time_ns = 0
-        print(entity_to_transform)
-        joint_angles = np.array([90, -70, 110, -130, -90, 90])/180*np.pi
+        joint_angles = np.array([90, -70, 110, -130, -90, 90]) / 180 * np.pi
         gripper_position = 0.01
         self.log_robot_states(joint_angles, entity_to_transform)
+        color_imgs = {}
+        depth_imgs = {}
+        color_extrinsics = {}
+        color_intrinsics = {}
+        depth_extrinsics = {}
+        depth_intrinsics = {}
+        color_imgs["rs-d435i"] = cv2.imread("../temp/color.png")
+        depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png",cv2.IMREAD_UNCHANGED)
+        color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
+        color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
+        depth_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
+        depth_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
+        color_imgs["rs-d435"] = None
+        depth_imgs["rs-d435"] = None
+        color_extrinsics["rs-d435"] = [-0.1, 0.5, 0.5, 0, 0, 0]
+        color_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
+        depth_extrinsics["rs-d435"] = [0.1, 0.5, 0.5, 0, 0, 0]
+        depth_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
+
+        self.log_camera(color_imgs, depth_imgs, color_extrinsics, color_intrinsics, depth_extrinsics, depth_intrinsics)
         # self.log_action_dict()
+
     #         for episode in self.ds:
     #             for step in episode["steps"]:
     #                 rr.set_time_nanos("real_time", cur_time_ns)
