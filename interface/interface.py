@@ -70,6 +70,7 @@ class RobotVis:
         color_intrinsics: dict[str, np.ndarray],
         depth_extrinsics: dict[str, np.ndarray],
         depth_intrinsics: dict[str, np.ndarray],
+        depth_units: int=0.001,
     ):
         for cam in self.cam_dict.keys():
             color_extrinsic = color_extrinsics[cam]
@@ -114,7 +115,7 @@ class RobotVis:
                 )
                 rr.log(
                     f"cameras/{cam}/depth",
-                    rr.DepthImage(depth_img, meter=10000),
+                    rr.DepthImage(depth_img, meter=10/depth_units),
                 )
 
     def log_action_dict(

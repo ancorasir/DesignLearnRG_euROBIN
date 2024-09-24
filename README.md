@@ -51,6 +51,7 @@ An interface is provided in `interface/`, which consists of 3D visualization and
 
 ```bash
 cd interface
+pip install -r requirements.txt
 python interface.py
 ```
 
