@@ -29,8 +29,9 @@ class RobotSubscriber:
         self.joint_angles = np.array(robot_state.joint_angles).flatten()
         self.joint_velocities = np.array(robot_state.joint_velocities).flatten()
         self.tcp_pose = np.array(robot_state.tcp_pose).flatten()
-        self.gripper_force = np.array()
-
+        self.gripper_position = np.array(robot_state.gripper_position).flatten()
+        self.gripper_force = np.array(robot_state.gripper_force).flatten()
+        
 class RobotVis:
     def __init__(self, cam_dict: dict[str, dict[str, str]]):
         self.prev_joint_origins = None
@@ -121,21 +122,13 @@ class RobotVis:
     def log_action_dict(
         self,
         tcp_pose: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
-        tcp_velocity: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
         joint_velocity: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
         gripper_position: int=0,
         gripper_velocity: int=0,
     ):
-        translation = tcp_pose[:3]
-        rotation_mat = Rotation.from_euler("xyz", tcp_pose[3:]).as_matrix()
-        rr.log(
-            "/action_dict/tcp_pose/cord",
-            rr.Transform3D(translation=translation, mat3x3=rotation_mat),
-        )
-        rr.log("/action_dict/tcp_pose/origin", rr.Points3D([translation]))
 
-        for i, vel in enumerate(tcp_velocity):
-            rr.log(f"/action_dict/tcp_velocity/{i}", rr.Scalar(vel))
+        for i, val in enumerate(tcp_pose):
+            rr.log(f"/action_dict/tcp_pose/{i}", rr.Scalar(val))
 
         for i, vel in enumerate(joint_velocity):
             rr.log(f"/action_dict/joint_velocity/{i}", rr.Scalar(vel))
@@ -231,7 +224,7 @@ class RobotVis:
                         ),
                         Vertical(
                             *(
-                                TimeSeriesView(origin=f"/action_dict/tcp_velocity/{i}")
+                                TimeSeriesView(origin=f"/action_dict/tcp_pose/{i}")
                                 for i in range(6)
                             ),
                             name="tcp velocity",

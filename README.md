@@ -17,7 +17,7 @@ The robot system used in the competition consists of:
 - Fingertip: [3D-printed fingertip](https://cad.onshape.com/documents/43edc50e275c72eace7a4839)
 - RGB-D Camera: [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)
 - Camera bracket: [CNC-milled camera bracket](https://cad.onshape.com/documents/01d4267b0af8aab9d6acb1ab)
-- Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
+- Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867), [Ulanzi U200](https://www.ulanzi.com/collections/bi-color-led-light/products/ulanzi-u200-camera-ring-light-video-rig-2245)
 
 And there are also the [task board](docs/task_board.pdf) and [Hikvision NP-Y1-S smoke detector](https://detail.tmall.com/item.htm?id=654643896582) used as task objects.
 
