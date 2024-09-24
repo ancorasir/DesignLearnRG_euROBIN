@@ -15,15 +15,19 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 class RobotVis:
-    def __init__(self, cam_dict):
+    def __init__(self, cam_dict: dict[str, dict[str, str]]):
         self.prev_joint_origins = None
         self.cam_dict = cam_dict
 
-    def log_images(self, imgs):
+    def log_images(self, imgs: dict[str, np.ndarray]):
         for cam in self.cam_dict.keys():
             rr.log(f"/cameras/{cam}", rr.Image(imgs[cam]))
 
-    def log_robot_states(self, joint_angles, entity_to_transform):
+    def log_robot_states(
+        self,
+        joint_angles: np.ndarray,
+        entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]],
+    ):
         joint_origins = []
         for joint_idx, angle in enumerate(joint_angles):
             transform = link_to_world_transform(
@@ -46,7 +50,12 @@ class RobotVis:
         self.prev_joint_origins = joint_origins
 
     def log_action_dict(
-        self, tcp_pose, tcp_velocity, joint_velocity, gripper_position, gripper_velocity
+        self,
+        tcp_pose: np.array,
+        tcp_velocity: np.array,
+        joint_velocity: np.array,
+        gripper_position: int,
+        gripper_velocity: int,
     ):
         translation = tcp_pose[:3]
         rotation_mat = Rotation.from_euler("xyz", tcp_pose[3:]).as_matrix()
@@ -71,11 +80,15 @@ class RobotVis:
             rr.Scalar(gripper_velocity),
         )
 
-    def log_robot_dataset(
+    def run(
         self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]
     ):
         cur_time_ns = 0
-
+        print(entity_to_transform)
+        joint_angles = np.array([90, -70, 110, -130, -90, 90])/180*np.pi
+        gripper_position = 0.01
+        self.log_robot_states(joint_angles, entity_to_transform)
+        # self.log_action_dict()
     #         for episode in self.ds:
     #             for step in episode["steps"]:
     #                 rr.set_time_nanos("real_time", cur_time_ns)
@@ -168,7 +181,7 @@ def main(robot: str = "ur10e_hande") -> None:
 
     rr.set_time_nanos("real_time", 0)
     urdf_logger.log()
-    robot_vis.log_robot_dataset(urdf_logger.entity_to_transform)
+    robot_vis.run(urdf_logger.entity_to_transform)
 
 
 if __name__ == "__main__":

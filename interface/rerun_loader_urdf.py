@@ -68,7 +68,9 @@ class URDFLogger:
         if joint.origin is not None and joint.origin.rpy is not None:
             rotation = st.Rotation.from_euler("xyz", joint.origin.rpy).as_matrix()
 
-        if joint.type != "fixed":
+        if joint.type == "fixed" and entity_path != "base_link/base_link_inertia":
+            pass
+        else:
             # fixed joint, no need to add to the transform
             self.entity_to_transform[self.root_path + entity_path] = (
                 translation,

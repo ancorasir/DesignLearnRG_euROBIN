@@ -16,10 +16,9 @@ def link_to_world_transform(
     joint_angles: list[float],
     link: int,
 ) -> np.ndarray:
-
     tot_transform = np.eye(4)
     for i in range(1, link + 1):
-        entity_path = path_to_link(i)
+        entity_path = path_to_link(i, entity_to_transform)
 
         start_translation, start_rotation_mat = entity_to_transform[entity_path]
 
@@ -69,8 +68,10 @@ def extract_extrinsics(pose: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return (translation, rotation)
 
 
-def path_to_link(link: int) -> str:
-    return "/".join(f"link{i}" for i in range(link + 1))
+def path_to_link(link: int, entity_to_transform:dict[str, tuple[np.ndarray, np.ndarray]]) -> str:
+    entity_path = list(entity_to_transform.keys())[link]
+    return entity_path
+    # return "/".join(f"link{i}" for i in range(link + 1))
 
 
 def log_angle_rot(
@@ -79,7 +80,7 @@ def log_angle_rot(
     angle_rad: float,
 ) -> None:
     """Logs an angle for the franka panda robot"""
-    entity_path = path_to_link(link)
+    entity_path = path_to_link(link, entity_to_transform)
 
     start_translation, start_rotation_mat = entity_to_transform[entity_path]
 

@@ -1,9 +1,19 @@
 rs-d435i:
-- name: "camera"
-  type: "realsense"
-  device: "d435i"
-  width: 640
-  height: 480
-  fps: 30
-  depth: true
-  color: true
+  - name: "camera"
+  - type: "realsense"
+  - device: "d435i"
+  - width: 1280
+  - height: 720
+  - fps: 30
+  - depth: false
+  - color: true
+
+rs-d435:
+  - name: "camera"
+  - type: "realsense"
+  - device: "d435i"
+  - width: 1280
+  - height: 720
+  - fps: 30
+  - depth: false
+  - color: true
