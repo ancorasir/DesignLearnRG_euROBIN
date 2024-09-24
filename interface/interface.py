@@ -1,15 +1,35 @@
 #!/usr/bin/env python3
 import os
+import zmq
 import cv2
-from pathlib import Path
 import numpy as np
 from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
+from protobuf import robot_pb2
 from common import log_angle_rot, blueprint_row_images, link_to_world_transform
 import rerun as rr
-import argparse
 import yaml
 
+class RobotSubscriber:
+    def __init__(self, address:str) -> None:
+        self.context = zmq.Context()
+        self.subscriber = self.context.socket(zmq.SUB)
+        self.subscriber.connect(address)
+        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
+        self.joint_angles = np.zeros(6)
+        self.joint_velocities = np.zeros(6)
+        self.tcp_pose = np.zeros(6)
+        self.gripper_position = 0
+        self.gripper_force = 0
+
+    def receive_message(self):
+        robot_state = robot_pb2.Robot()
+        robot_state.ParseFromString(self.subscriber.recv())
+
+        self.joint_angles = np.array(robot_state.joint_angles).flatten()
+        self.joint_velocities = np.array(robot_state.joint_velocities).flatten()
+        self.tcp_pose = np.array(robot_state.tcp_pose).flatten()
+        self.gripper_force = np.array()
 
 class RobotVis:
     def __init__(self, cam_dict: dict[str, dict[str, str]]):
@@ -99,11 +119,11 @@ class RobotVis:
 
     def log_action_dict(
         self,
-        tcp_pose: np.array,
-        tcp_velocity: np.array,
-        joint_velocity: np.array,
-        gripper_position: int,
-        gripper_velocity: int,
+        tcp_pose: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
+        tcp_velocity: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
+        joint_velocity: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
+        gripper_position: int=0,
+        gripper_velocity: int=0,
     ):
         translation = tcp_pose[:3]
         rotation_mat = Rotation.from_euler("xyz", tcp_pose[3:]).as_matrix()
@@ -131,7 +151,6 @@ class RobotVis:
     def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
         cur_time_ns = 0
         joint_angles = np.array([90, -70, 110, -130, -90, 90]) / 180 * np.pi
-        gripper_position = 0.01
         self.log_robot_states(joint_angles, entity_to_transform)
         color_imgs = {}
         depth_imgs = {}
@@ -160,7 +179,7 @@ class RobotVis:
             depth_extrinsics,
             depth_intrinsics,
         )
-        # self.log_action_dict()
+        self.log_action_dict()
 
     #         for episode in self.ds:
     #             for step in episode["steps"]:
