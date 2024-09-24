@@ -49,6 +49,16 @@ class RobotVis:
 
         self.prev_joint_origins = joint_origins
 
+    def log_camera(
+        self,
+        color_dict: dict[str, np.ndarray],
+        depth_dict: dict[str, np.ndarray],
+        extrinsics_dict: dict[str, np.ndarray],
+        intrinsic_dict: dict[str, np.ndarray],
+    ):
+        for cam in self.cam_dict:
+
+
     def log_action_dict(
         self,
         tcp_pose: np.array,
