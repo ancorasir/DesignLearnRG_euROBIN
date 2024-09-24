@@ -18,9 +18,9 @@ class RobotVis:
         self.prev_joint_origins = None
         self.cam_dict = cam_dict
 
-    def log_images(self, step):
+    def log_images(self, imgs):
         for cam in self.cam_dict.keys():
-            rr.log(f"/cameras/{cam}", rr.Image(step["observation"][cam].numpy()))
+            rr.log(f"/cameras/{cam}", rr.Image(imgs[cam]))
 
     def log_robot_states(self, joint_angles, entity_to_transform):
         joint_origins = []
@@ -110,7 +110,7 @@ class RobotVis:
                         Vertical(
                             *(
                                 TimeSeriesView(origin=f"/action_dict/joint_velocity/{i}")
-                                for i in range(7)
+                                for i in range(6)
                             ),
                             name="joint velocity",
                         ),
