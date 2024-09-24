@@ -22,10 +22,7 @@ class RobotVis:
         for cam in self.cam_dict.keys():
             rr.log(f"/cameras/{cam}", rr.Image(step["observation"][cam].numpy()))
 
-    def log_robot_states(self, step, entity_to_transform):
-        
-        joint_angles = step["observation"]["joint_position"]
-
+    def log_robot_states(self, joint_angles, entity_to_transform):
         joint_origins = []
         for joint_idx, angle in enumerate(joint_angles):
             transform = link_to_world_transform(entity_to_transform, joint_angles, joint_idx+1)
@@ -40,33 +37,31 @@ class RobotVis:
     
         self.prev_joint_origins = joint_origins
 
-
-    def log_action_dict(self, step):
-        pose = step["action_dict"]["cartesian_position"]
-        translation = pose[:3]
-        rotation_mat = Rotation.from_euler("xyz", pose[3:]).as_matrix()
+    def log_action_dict(self, tcp_pose, tcp_velocity, joint_velocity, gripper_position, gripper_velocity):
+        translation = tcp_pose[:3]
+        rotation_mat = Rotation.from_euler("xyz", tcp_pose[3:]).as_matrix()
         rr.log(
-            "/action_dict/cartesian_position/cord",
+            "/action_dict/tcp_pose/cord",
             rr.Transform3D(translation=translation, mat3x3=rotation_mat),
         )
         rr.log(
-            "/action_dict/cartesian_position/origin",
+            "/action_dict/tcp_pose/origin",
             rr.Points3D([translation])
         )
 
-        for i, vel in enumerate(step["action_dict"]["cartesian_velocity"]):
-            rr.log(f"/action_dict/cartesian_velocity/{i}", rr.Scalar(vel))
+        for i, vel in enumerate(tcp_velocity):
+            rr.log(f"/action_dict/tcp_velocity/{i}", rr.Scalar(vel))
 
-        for i, vel in enumerate(step["action_dict"]["joint_velocity"]):
+        for i, vel in enumerate(joint_velocity):
             rr.log(f"/action_dict/joint_velocity/{i}", rr.Scalar(vel))
 
         rr.log(
             "/action_dict/gripper_position",
-            rr.Scalar(step["action_dict"]["gripper_position"]),
+            rr.Scalar(gripper_position),
         )
         rr.log(
             "/action_dict/gripper_velocity",
-            rr.Scalar(step["action_dict"]["gripper_velocity"]),
+            rr.Scalar(gripper_velocity),
         )
 
     def log_robot_dataset(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
@@ -121,10 +116,10 @@ class RobotVis:
                         ),
                         Vertical(
                             *(
-                                TimeSeriesView(origin=f"/action_dict/cartesian_velocity/{i}")
+                                TimeSeriesView(origin=f"/action_dict/tcp_velocity/{i}")
                                 for i in range(6)
                             ),
-                            name="cartesian position",
+                            name="tcp velocity",
                         ),
                         Vertical(
                             TimeSeriesView(origin="/action_dict/gripper_position"),
@@ -165,11 +160,5 @@ def main(robot:str="ur10e_hande") -> None:
     urdf_logger.log()
     robot_vis.log_robot_dataset(urdf_logger.entity_to_transform)
 
-    print("urdf_logger.entity_to_transform", urdf_logger.entity_to_transform)
-
-    print
-
-
 if __name__ == "__main__":
     main("ur10e_hande_d435i")
-    # rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
