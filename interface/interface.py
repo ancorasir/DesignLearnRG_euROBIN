@@ -13,7 +13,7 @@ import yaml
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # import tensorflow_datasets as tfds  # noqa: E402
 
-class RLDSDataset:
+class RobotVis:
     def __init__(self, cam_dict):
         self.prev_joint_origins = None
         self.cam_dict = cam_dict
@@ -155,15 +155,15 @@ def main(robot:str="ur10e_hande") -> None:
     }
 
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
-    rlds_scene = RLDSDataset(cam_dict=cam_dict)
+    robot_vis = RobotVis(cam_dict=cam_dict)
     
     rr.init("DROID-visualized", spawn=True)
 
-    rr.send_blueprint(rlds_scene.blueprint())
+    rr.send_blueprint(robot_vis.blueprint())
 
     rr.set_time_nanos("real_time", 0)
     urdf_logger.log()
-    rlds_scene.log_robot_dataset(urdf_logger.entity_to_transform)
+    robot_vis.log_robot_dataset(urdf_logger.entity_to_transform)
 
     print("urdf_logger.entity_to_transform", urdf_logger.entity_to_transform)
 
@@ -172,4 +172,4 @@ def main(robot:str="ur10e_hande") -> None:
 
 if __name__ == "__main__":
     main("ur10e_hande_d435i")
-    rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
+    # rr.log("annotation", rr.TextDocument("annotaion_1",media_type="text/markdown"))
