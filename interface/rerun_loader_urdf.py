@@ -16,6 +16,7 @@ import scipy.spatial.transform as st
 import trimesh
 from urdf_parser_py import urdf as urdf_parser
 
+
 class URDFLogger:
     """Class to log a URDF to Rerun."""
 
@@ -34,12 +35,16 @@ class URDFLogger:
     def joint_entity_path(self, joint: urdf_parser.Joint) -> str:
         """Return the entity path for the URDF joint."""
         root_name = self.urdf.get_root()
-        link_names = self.urdf.get_chain(root_name, joint.child)[0::2]  # skip the joints
+        link_names = self.urdf.get_chain(root_name, joint.child)[
+            0::2
+        ]  # skip the joints
         return "/".join(link_names)
 
     def log(self) -> None:
         """Log a URDF file to Rerun."""
-        rr.log(self.root_path + "", rr.ViewCoordinates.RIGHT_HAND_Z_UP, timeless=True)  # default ROS convention
+        rr.log(
+            self.root_path + "", rr.ViewCoordinates.RIGHT_HAND_Z_UP, timeless=True
+        )  # default ROS convention
 
         for joint in self.urdf.joints:
             entity_path = self.joint_entity_path(joint)
@@ -65,8 +70,14 @@ class URDFLogger:
 
         if joint.type != "fixed":
             # fixed joint, no need to add to the transform
-            self.entity_to_transform[self.root_path + entity_path] = (translation, rotation)
-        rr.log(self.root_path + entity_path, rr.Transform3D(translation=translation, mat3x3=rotation))
+            self.entity_to_transform[self.root_path + entity_path] = (
+                translation,
+                rotation,
+            )
+        rr.log(
+            self.root_path + entity_path,
+            rr.Transform3D(translation=translation, mat3x3=rotation),
+        )
 
     def log_visual(self, entity_path: str, visual: urdf_parser.Visual) -> None:
         material = None
@@ -81,7 +92,9 @@ class URDFLogger:
         if visual.origin is not None and visual.origin.xyz is not None:
             transform[:3, 3] = visual.origin.xyz
         if visual.origin is not None and visual.origin.rpy is not None:
-            transform[:3, :3] = st.Rotation.from_euler("xyz", visual.origin.rpy).as_matrix()
+            transform[:3, :3] = st.Rotation.from_euler(
+                "xyz", visual.origin.rpy
+            ).as_matrix()
 
         if isinstance(visual.geometry, urdf_parser.Mesh):
             resolved_path = resolve_ros_path(visual.geometry.filename)
@@ -101,12 +114,12 @@ class URDFLogger:
                 radius=visual.geometry.radius,
             )
         else:
-            rr.log(self.root_path + 
-                "",
+            rr.log(
+                self.root_path + "",
                 rr.TextLog("Unsupported geometry type: " + str(type(visual.geometry))),
             )
             mesh_or_scene = trimesh.Trimesh()
-        
+
         mesh_or_scene.apply_transform(transform)
 
         if isinstance(mesh_or_scene, trimesh.Scene):
@@ -119,8 +132,10 @@ class URDFLogger:
                         mesh.visual.vertex_colors = material.color.rgba
                     elif material.texture is not None:
                         texture_path = resolve_ros_path(material.texture.filename)
-                        mesh.visual = trimesh.visual.texture.TextureVisuals(image=Image.open(texture_path))
-                log_trimesh(self.root_path + entity_path+f"/{i}", mesh)
+                        mesh.visual = trimesh.visual.texture.TextureVisuals(
+                            image=Image.open(texture_path)
+                        )
+                log_trimesh(self.root_path + entity_path + f"/{i}", mesh)
         else:
             mesh = mesh_or_scene
             if material is not None:
@@ -129,7 +144,9 @@ class URDFLogger:
                     mesh.visual.vertex_colors = material.color.rgba
                 elif material.texture is not None:
                     texture_path = resolve_ros_path(material.texture.filename)
-                    mesh.visual = trimesh.visual.texture.TextureVisuals(image=Image.open(texture_path))
+                    mesh.visual = trimesh.visual.texture.TextureVisuals(
+                        image=Image.open(texture_path)
+                    )
             log_trimesh(self.root_path + entity_path, mesh)
 
 
@@ -161,7 +178,7 @@ def log_trimesh(entity_path: str, mesh: trimesh.Trimesh) -> None:
                 vertex_colors = colors
         except Exception:
             pass
-    
+
     rr.log(
         entity_path,
         rr.Mesh3D(
@@ -175,6 +192,7 @@ def log_trimesh(entity_path: str, mesh: trimesh.Trimesh) -> None:
         timeless=True,
     )
 
+
 def resolve_ros_path(path: str) -> str:
     """Resolve a ROS path to an absolute path."""
     if path.startswith("package://"):
@@ -182,7 +200,9 @@ def resolve_ros_path(path: str) -> str:
         package_name = path.parts[1]
         relative_path = pathlib.Path(*path.parts[2:])
 
-        package_path = resolve_ros1_package(package_name) or resolve_ros2_package(package_name)
+        package_path = resolve_ros1_package(package_name) or resolve_ros2_package(
+            package_name
+        )
 
         if package_path is None:
             raise ValueError(
@@ -223,14 +243,13 @@ def resolve_ros1_package(package_name: str) -> str:
 
 def main() -> None:
 
-
-# The Rerun Viewer will always pass these two pieces of information:
-# 1. The path to be loaded, as a positional arg.
-# 2. A shared recording ID, via the `--recording-id` flag.
-#
-# It is up to you whether you make use of that shared recording ID or not.
-# If you use it, the data will end up in the same recording as all other plugins interested in
-# that file, otherwise you can just create a dedicated recording for it. Or both.
+    # The Rerun Viewer will always pass these two pieces of information:
+    # 1. The path to be loaded, as a positional arg.
+    # 2. A shared recording ID, via the `--recording-id` flag.
+    #
+    # It is up to you whether you make use of that shared recording ID or not.
+    # If you use it, the data will end up in the same recording as all other plugins interested in
+    # that file, otherwise you can just create a dedicated recording for it. Or both.
     parser = argparse.ArgumentParser(
         description="""
 This is an example executable data-loader plugin for the Rerun Viewer.

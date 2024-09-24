@@ -18,26 +18,27 @@ def link_to_world_transform(
 ) -> np.ndarray:
 
     tot_transform = np.eye(4)
-    for i in range(1, link+1):
+    for i in range(1, link + 1):
         entity_path = path_to_link(i)
 
         start_translation, start_rotation_mat = entity_to_transform[entity_path]
 
-        if i-1 >= len(joint_angles):
+        if i - 1 >= len(joint_angles):
             angle_rad = 0
         else:
-            angle_rad = joint_angles[i-1]
+            angle_rad = joint_angles[i - 1]
         vec = np.array(np.array([0, 0, 1]) * angle_rad)
-        
+
         rot = Rotation.from_rotvec(vec).as_matrix()
         rotation_mat = start_rotation_mat @ rot
-        
+
         transform = np.eye(4)
-        transform[:3,:3] = rotation_mat
-        transform[:3,3] = start_translation
+        transform[:3, :3] = rotation_mat
+        transform[:3, 3] = start_translation
         tot_transform = tot_transform @ transform
 
     return tot_transform
+
 
 def log_cartesian_velocity(root: str, cartesian_velocity: np.ndarray):
     if not root.endswith("/"):
@@ -59,6 +60,7 @@ def blueprint_row_images(origins):
             for org in origins
         ),
     )
+
 
 def extract_extrinsics(pose: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Takes a vector with dimension 6 and extracts the translation vector and the rotation matrix"""
