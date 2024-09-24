@@ -61,7 +61,7 @@ The data recorded during trials is available at [Google Drive](), which includes
 
 - [x] Positions and velocities of UR10e's joints
 - [x] Trajectories of UR10e's tool center point (TCP)
-- [x] Forces of Robotiq Hand-E gripper
+- [x] Positions and Forces of Robotiq Hand-E gripper
 
 All data is recorded at 30 Hz, and saved as csv files.
 
