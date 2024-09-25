@@ -1,6 +1,6 @@
 # Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
-[[Report Page]](https://msvc-dlrg.github.io) | [[Video]]()
+[[Report Page]](https://msvc-dlrg.github.io) | [[Video]]() | [[Data]](https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing)
 
 ![Teaser Image](assets/images/teaser.jpg)
 
@@ -57,7 +57,7 @@ python interface.py
 
 ## Data Availability
 
-The data recorded during trials is available at [Google Drive](), which includes:
+The data recorded during trials is available at [Google Drive](https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing), which includes:
 
 - [x] Positions and velocities of UR10e's joints
 - [x] Trajectories of UR10e's tool center point (TCP)
