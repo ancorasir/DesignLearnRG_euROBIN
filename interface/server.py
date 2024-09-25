@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import time
 import zmq
 import cv2
 import numpy as np
@@ -165,15 +166,20 @@ class RobotVis:
         depth_extrinsics["rs-d435"] = [0.1, 0.5, 0.5, 0, 0, 0]
         depth_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
 
-        self.log_camera(
-            color_imgs,
-            depth_imgs,
-            color_extrinsics,
-            color_intrinsics,
-            depth_extrinsics,
-            depth_intrinsics,
-        )
-        self.log_action_dict()
+        try:
+            while True:
+                self.log_camera(
+                    color_imgs,
+                    depth_imgs,
+                    color_extrinsics,
+                    color_intrinsics,
+                    depth_extrinsics,
+                    depth_intrinsics,
+                )
+                self.log_action_dict()
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            print("Interrupted")
 
     #         for episode in self.ds:
     #             for step in episode["steps"]:
@@ -261,11 +267,12 @@ def main(robot: str = "ur10e_hande") -> None:
     urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
     robot_vis = RobotVis(cam_dict=cam_dict)
 
-    rr.init("DROID-visualized", spawn=True)
-
+    rr.init("Robot Interface")
+    rr.serve(open_browser=False, ws_port=4321, web_port=8000)
     rr.send_blueprint(robot_vis.blueprint())
-
     rr.set_time_nanos("real_time", 0)
+    time.sleep(1)
+
     urdf_logger.log()
     robot_vis.run(urdf_logger.entity_to_transform)
 
