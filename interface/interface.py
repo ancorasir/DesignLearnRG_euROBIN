@@ -207,7 +207,7 @@ class RobotVis:
                 Vertical(
                     Spatial3DView(name="spatial view", origin="/", contents=["/**"]),
                     blueprint_row_images(
-                        [f"/cameras/{cam}" for cam in self.cam_dict.keys()]
+                        [f"/cameras/{cam}/color" for cam in self.cam_dict.keys()]
                     ),
                     row_shares=[3, 1],
                 ),
