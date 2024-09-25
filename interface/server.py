@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import os
-import sys
 import time
+import yaml
+import socket
+import asyncio
+import websockets
+import contextlib
 import zmq
 import cv2
 import numpy as np
@@ -9,21 +13,27 @@ from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
 from protobuf import robot_pb2
 from common import log_angle_rot, blueprint_row_images, link_to_world_transform
-from http.server import SimpleHTTPRequestHandler
-from http.server import CGIHTTPRequestHandler
-from http.server import ThreadingHTTPServer
+from http.server import SimpleHTTPRequestHandler, BaseHTTPRequestHandler, ThreadingHTTPServer
 from functools import partial
 from multiprocessing import Process
-import contextlib
 import rerun as rr
-import yaml
 
 class DualStackServer(ThreadingHTTPServer):
     def server_bind(self):
         # suppress exception when protocol is IPv4
         with contextlib.suppress(Exception):
-            self.socket.setsockopt(self.socket.IPPROTO_IPV6, self.socket.IPV6_V6ONLY, 0)
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
         return super().server_bind()
+
+class TestHTTPHandle(BaseHTTPRequestHandler):
+    def do_POST(self):
+        print(self.headers)
+        content_len = int(self.headers.get('content-length',0))
+        post_body = self.rfile.read(content_len)
+        print("receive message from server: ")
+        print(post_body)
+        self.send_response(200)
+        self.end_headers()
 
 class RobotSubscriber:
     def __init__(self, address:str) -> None:
@@ -168,20 +178,16 @@ class RobotVis:
         depth_extrinsics = {}
         depth_intrinsics = {}
         color_imgs["rs-d435i"] = cv2.imread("../temp/color.png")
-        depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png", cv2.IMREAD_UNCHANGED)
+        # depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png", cv2.IMREAD_UNCHANGED)
+        depth_imgs["rs-d435i"] = None
         color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
         color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
         depth_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
         depth_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
-        color_imgs["rs-d435"] = None
-        depth_imgs["rs-d435"] = None
-        color_extrinsics["rs-d435"] = [-0.1, 0.5, 0.5, 0, 0, 0]
-        color_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
-        depth_extrinsics["rs-d435"] = [0.1, 0.5, 0.5, 0, 0, 0]
-        depth_intrinsics["rs-d435"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
 
         try:
             while True:
+                self.log_robot_states(joint_angles, entity_to_transform)
                 self.log_camera(
                     color_imgs,
                     depth_imgs,
@@ -193,7 +199,7 @@ class RobotVis:
                 self.log_action_dict()
                 time.sleep(0.1)
         except KeyboardInterrupt:
-            sys.exit(0)
+            pass
 
     #         for episode in self.ds:
     #             for step in episode["steps"]:
@@ -306,7 +312,21 @@ def web_server(
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            sys.exit(0)
+            pass
+
+def blueprint_server(
+        bind: str="localhost",
+        port: int=4322
+    ):
+    async def echo(websocket, path):
+        async for message in websocket:
+            print(f"Received message: {message}")
+            await websocket.send(f"Echo: {message}")
+
+    start_server = websockets.serve(echo, bind, port)
+
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
 
 def main(
         robot: str = "ur10e_hande", 
@@ -317,8 +337,15 @@ def main(
     ) -> None:
     rerun_process = Process(target=rerun_server, args=(robot,))
     web_process = Process(target=web_server,args=(server_class, handler_class, bind, port,))
-    rerun_process.start()
-    web_process.start()
+    blueprint_process = Process(target=blueprint_server, args=("localhost", 4322))
+    try:
+        rerun_process.start()
+        web_process.start()
+        blueprint_process.start()
+    except KeyboardInterrupt:
+        rerun_process.join()
+        web_process.join()
+        blueprint_process.join()
 
 
 if __name__ == "__main__":
