@@ -178,7 +178,6 @@ class RobotVis:
         )
 
     def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
-        cur_time_ns = 0
         joint_angles = np.array([90, -70, 110, -130, -90, 90]) / 180 * np.pi
         self.log_robot_states(joint_angles, entity_to_transform)
         color_imgs = {}
@@ -188,7 +187,6 @@ class RobotVis:
         depth_extrinsics = {}
         depth_intrinsics = {}
         color_imgs["rs-d435i"] = cv2.imread("../temp/color.png")
-        # depth_imgs["rs-d435i"] = cv2.imread("../temp/depth.png", cv2.IMREAD_UNCHANGED)
         depth_imgs["rs-d435i"] = None
         color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
         color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
