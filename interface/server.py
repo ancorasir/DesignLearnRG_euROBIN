@@ -2,6 +2,7 @@
 import os
 import time
 import yaml
+import ast
 import socket
 import asyncio
 import websockets
@@ -13,10 +14,15 @@ from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
 from protobuf import robot_pb2
 from common import log_angle_rot, blueprint_row_images, link_to_world_transform
-from http.server import SimpleHTTPRequestHandler, BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import (
+    SimpleHTTPRequestHandler,
+    BaseHTTPRequestHandler,
+    ThreadingHTTPServer,
+)
 from functools import partial
 from multiprocessing import Process
 import rerun as rr
+
 
 class DualStackServer(ThreadingHTTPServer):
     def server_bind(self):
@@ -25,18 +31,20 @@ class DualStackServer(ThreadingHTTPServer):
             self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
         return super().server_bind()
 
+
 class TestHTTPHandle(BaseHTTPRequestHandler):
     def do_POST(self):
         print(self.headers)
-        content_len = int(self.headers.get('content-length',0))
+        content_len = int(self.headers.get("content-length", 0))
         post_body = self.rfile.read(content_len)
         print("receive message from server: ")
         print(post_body)
         self.send_response(200)
         self.end_headers()
 
+
 class RobotSubscriber:
-    def __init__(self, address:str) -> None:
+    def __init__(self, address: str) -> None:
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
         self.subscriber.connect(address)
@@ -56,7 +64,8 @@ class RobotSubscriber:
         self.tcp_pose = np.array(robot_state.tcp_pose).flatten()
         self.gripper_position = np.array(robot_state.gripper_position).flatten()
         self.gripper_force = np.array(robot_state.gripper_force).flatten()
-        
+
+
 class RobotVis:
     def __init__(self, cam_dict: dict[str, dict[str, str]]):
         self.prev_joint_origins = None
@@ -96,7 +105,7 @@ class RobotVis:
         color_intrinsics: dict[str, np.ndarray],
         depth_extrinsics: dict[str, np.ndarray],
         depth_intrinsics: dict[str, np.ndarray],
-        depth_units: int=0.001,
+        depth_units: int = 0.001,
     ):
         for cam in self.cam_dict.keys():
             color_extrinsic = color_extrinsics[cam]
@@ -141,15 +150,15 @@ class RobotVis:
                 )
                 rr.log(
                     f"cameras/{cam}/depth",
-                    rr.DepthImage(depth_img, meter=10/depth_units),
+                    rr.DepthImage(depth_img, meter=10 / depth_units),
                 )
 
     def log_action_dict(
         self,
-        tcp_pose: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
-        joint_velocity: np.ndarray=np.array([0, 0, 0, 0, 0, 0]),
-        gripper_position: int=0,
-        gripper_velocity: int=0,
+        tcp_pose: np.ndarray = np.array([0, 0, 0, 0, 0, 0]),
+        joint_velocity: np.ndarray = np.array([0, 0, 0, 0, 0, 0]),
+        gripper_position: int = 0,
+        gripper_velocity: int = 0,
     ):
 
         for i, val in enumerate(tcp_pose):
@@ -200,21 +209,6 @@ class RobotVis:
                 time.sleep(0.1)
         except KeyboardInterrupt:
             pass
-
-    #         for episode in self.ds:
-    #             for step in episode["steps"]:
-    #                 rr.set_time_nanos("real_time", cur_time_ns)
-    #                 cur_time_ns += int((1e9 * 1 / 15))
-    #                 rr.log("instructions", rr.TextDocument(f'''
-    # **instruction 1**: {bytearray(step["language_instruction"].numpy()).decode()}
-    # **instruction 2**: {bytearray(step["language_instruction_2"].numpy()).decode()}
-    # **instruction 3**: {bytearray(step["language_instruction_3"].numpy()).decode()}
-    # ''',
-    #                     media_type="text/markdown"))
-    #                 self.log_images(step)
-    #                 self.log_robot_states(step, entity_to_transform)
-    #                 self.log_action_dict(step)
-    #                 rr.log("discount", rr.Scalar(step["discount"]))
 
     def blueprint(self):
         from rerun.blueprint import (
@@ -269,9 +263,10 @@ class RobotVis:
             TimePanel(expanded=False),
         )
 
+
 def rerun_server(
-        robot: str = "ur10e_hande", 
-    ):
+    robot: str = "ur10e_hande",
+):
     cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
 
     robot_urdf_dict = {
@@ -297,30 +292,40 @@ def rerun_server(
     urdf_logger.log()
     robot_vis.run(urdf_logger.entity_to_transform)
 
+
 def web_server(
-        server_class=DualStackServer,
-        handler_class=SimpleHTTPRequestHandler,
-        bind: str="192.168.31.70", 
-        port: int=8000,
-    ):
+    server_class=DualStackServer,
+    handler_class=SimpleHTTPRequestHandler,
+    bind: str = "192.168.31.70",
+    port: int = 8000,
+):
     handler_class = partial(SimpleHTTPRequestHandler, directory=os.getcwd())
     with server_class((bind, port), handler_class) as httpd:
-        print(
-            f"Serving HTTP on {bind} port {port} "
-            f"(http://{bind}:{port}/) ..."
-        )
+        print(f"Serving HTTP on {bind} port {port} " f"(http://{bind}:{port}/) ...")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             pass
 
+
 def blueprint_server(
-        bind: str="localhost",
-        port: int=4322
-    ):
+    action_dict: dict,
+    bind: str = "localhost",
+    port: int = 4322,
+):
     async def echo(websocket, path):
         async for message in websocket:
-            print(f"Received message: {message}")
+            # save the message to a file
+            print(f"receive message: {message}")
+            msg_list = ast.literal_eval(message)
+            msg_dict = {}
+            for i, msg in enumerate(msg_list):
+                msg_dict[f"action_{i}"] = {
+                    "id": msg["node"],
+                    "name": action_dict[str(msg["node"])],
+                }
+            with open("../temp/action.yaml", "w") as f:
+                f.write(yaml.dump(msg_dict))
             await websocket.send(f"Echo: {message}")
 
     start_server = websockets.serve(echo, bind, port)
@@ -328,16 +333,29 @@ def blueprint_server(
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 
+
 def main(
-        robot: str = "ur10e_hande", 
-        server_class=DualStackServer,
-        handler_class=SimpleHTTPRequestHandler,
-        bind: str="192.168.31.70", 
-        port: int=8000,
-    ) -> None:
+    action_dict: str,
+    robot: str = "ur10e_hande",
+    server_class=DualStackServer,
+    handler_class=SimpleHTTPRequestHandler,
+    bind: str = "192.168.31.70",
+    port: int = 8000,
+) -> None:
+
     rerun_process = Process(target=rerun_server, args=(robot,))
-    web_process = Process(target=web_server,args=(server_class, handler_class, bind, port,))
-    blueprint_process = Process(target=blueprint_server, args=("localhost", 4322))
+    web_process = Process(
+        target=web_server,
+        args=(
+            server_class,
+            handler_class,
+            bind,
+            port,
+        ),
+    )
+    blueprint_process = Process(
+        target=blueprint_server, args=(action_dict, "localhost", 4322)
+    )
     try:
         rerun_process.start()
         web_process.start()
@@ -349,4 +367,12 @@ def main(
 
 
 if __name__ == "__main__":
-    main("ur10e_hande_d435i")
+    action_dict = {
+        "0": "find board & press button",
+        "1": "move slider to setpoints on screen",
+        "2": "plug in probe into test port",
+        "3": "open door, probe circuit",
+        "4": "wrap cable, replace probe",
+        "5": "press stop trial button",
+    }
+    main(action_dict=action_dict, robot="ur10e_hande_d435i")
