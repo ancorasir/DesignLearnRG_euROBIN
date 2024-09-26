@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import os
 import time
 import yaml
@@ -296,16 +297,13 @@ def rerun_server(
 def web_server(
     server_class=DualStackServer,
     handler_class=SimpleHTTPRequestHandler,
-    bind: str = "192.168.31.70",
+    bind: str = "127.0.0.1",
     port: int = 8000,
 ):
     handler_class = partial(SimpleHTTPRequestHandler, directory=os.getcwd())
     with server_class((bind, port), handler_class) as httpd:
         print(f"Serving HTTP on {bind} port {port} " f"(http://{bind}:{port}/) ...")
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            pass
+        httpd.serve_forever()
 
 
 def blueprint_server(
@@ -339,11 +337,10 @@ def main(
     robot: str = "ur10e_hande",
     server_class=DualStackServer,
     handler_class=SimpleHTTPRequestHandler,
-    bind: str = "192.168.31.70",
+    bind: str = "127.0.0.1",
     port: int = 8000,
 ) -> None:
 
-    rerun_process = Process(target=rerun_server, args=(robot,))
     web_process = Process(
         target=web_server,
         args=(
@@ -353,17 +350,16 @@ def main(
             port,
         ),
     )
+    web_process.daemon = True
+    web_process.start()
+
     blueprint_process = Process(
         target=blueprint_server, args=(action_dict, "localhost", 4322)
     )
-    try:
-        rerun_process.start()
-        web_process.start()
-        blueprint_process.start()
-    except KeyboardInterrupt:
-        rerun_process.join()
-        web_process.join()
-        blueprint_process.join()
+    blueprint_process.daemon = True
+    blueprint_process.start()
+
+    rerun_server(robot=robot)
 
 
 if __name__ == "__main__":
