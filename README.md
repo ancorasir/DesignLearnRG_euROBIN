@@ -47,13 +47,15 @@ cmake ..
 make
 ```
 
-An interface is provided in `interface/`, which consists of 3D visualization and data curves of robot. To open the interface, run:
+An interface is provided in `interface/`, which consists of 3D visualization and data curves of robot. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
 cd interface
 pip install -r requirements.txt
-python interface.py
+python server.py
 ```
+
+The interface will be available at `http://127.0.0.1:8000`.
 
 ## Data Availability
 
