@@ -8,4 +8,5 @@ message Robot {
     repeated double tcp_pose = 3;
     repeated double gripper_position = 4;
     repeated double gripper_force = 5;
+    bytes image = 6;
 }

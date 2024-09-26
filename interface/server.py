@@ -55,6 +55,7 @@ class RobotSubscriber:
         self.tcp_pose = np.zeros(6)
         self.gripper_position = 0
         self.gripper_force = 0
+        self.image = None
 
     def receive_message(self):
         robot_state = robot_pb2.Robot()
@@ -65,6 +66,11 @@ class RobotSubscriber:
         self.tcp_pose = np.array(robot_state.tcp_pose).flatten()
         self.gripper_position = np.array(robot_state.gripper_position).flatten()
         self.gripper_force = np.array(robot_state.gripper_force).flatten()
+
+        self.image = cv2.cvtColor(
+            cv2.imdecode(np.frombuffer(robot_state.image, np.uint8), cv2.IMREAD_COLOR),
+            cv2.COLOR_BGR2RGB,
+        )
 
 
 class RobotVis:
@@ -178,6 +184,10 @@ class RobotVis:
         )
 
     def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
+        with open('../config/address.yaml', 'r') as f:
+            address_dict = yaml.load(f.read(), Loader=yaml.Loader)
+        robot_subscriber = RobotSubscriber(address=address_dict['robot_state'])
+        
         joint_angles = np.array([90, -70, 110, -130, -90, 90]) / 180 * np.pi
         self.log_robot_states(joint_angles, entity_to_transform)
         color_imgs = {}
@@ -186,7 +196,9 @@ class RobotVis:
         color_intrinsics = {}
         depth_extrinsics = {}
         depth_intrinsics = {}
-        color_imgs["rs-d435i"] = cv2.imread("../temp/color.png")
+        color_imgs["rs-d435i"] = cv2.cvtColor(
+            cv2.imread("../temp/color.png"), cv2.COLOR_BGR2RGB
+        )
         depth_imgs["rs-d435i"] = None
         color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
         color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
