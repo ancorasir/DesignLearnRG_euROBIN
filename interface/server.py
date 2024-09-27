@@ -332,7 +332,6 @@ def skill_server(
 ):
     async def echo(websocket, path):
         async for message in websocket:
-            # save the message to a file
             print(f"receive message: {message}")
             msg_list = ast.literal_eval(message)
             msg_dict = {}
@@ -373,7 +372,7 @@ def main(
     web_process.start()
 
     blueprint_process = Process(
-        target=skill_server, args=(skill_dict, "localhost", 4322)
+        target=skill_server, args=(skill_dict,)
     )
     blueprint_process.daemon = True
     blueprint_process.start()
