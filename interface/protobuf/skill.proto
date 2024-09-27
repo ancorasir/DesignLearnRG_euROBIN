@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package skill;
+
+message Skill {
+    repeated int32 skill = 1;
+}
