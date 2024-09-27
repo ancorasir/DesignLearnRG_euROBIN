@@ -23,11 +23,11 @@ And there are also the [task board](docs/task_board.pdf) and [Hikvision NP-Y1-S 
 
 ## Software Dependencies
 
-The code is developed with C/C++ and Python, and tested on Ubuntu 20.04 with the following dependencies:
+The code is developed with Python, and tested on Ubuntu 20.04 with the following dependencies:
 
-- [RTDE]
+- [Real-time Data Exchange (RTDE)](https://www.universal-robots.com/articles/ur/interface-communication/real-time-data-exchange-rtde-guide/)
 - [Intel RealSense SDK 2.0](https://www.intelrealsense.com/sdk-2/)
-- [Rerun](https://rerun.io)
+- [Rerun](https://rerun.io/)
 
 ## Quick Start
 
@@ -38,20 +38,16 @@ git clone https://github.com/ancorasir/DesignLearnRG_euROBIN.git
 cd DesignLearnRG_euROBIN
 ```
 
-Then, build the code:
+Then, install the dependencies:
 
 ```bash
-mkdir build
-cd build
-cmake ..
-make
+pip install -r requirements.txt
 ```
 
 An interface is provided in `interface/`, which consists of 3D visualization and data curves of robot. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
 cd interface
-pip install -r requirements.txt
 python server.py
 ```
 
@@ -63,6 +59,7 @@ The data recorded during trials is available at [Google Drive](https://drive.goo
 
 - [x] Positions and velocities of UR10e's joints
 - [x] Trajectories of UR10e's tool center point (TCP)
+- [x] Images captured by Intel Realsense D435i camera
 
 All data is recorded at 30 Hz, and saved as csv files.
 
