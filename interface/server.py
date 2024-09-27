@@ -196,9 +196,11 @@ class RobotVis:
             for cam in self.cam_dict.keys()
         }
         recording = False
+        time_list = []
         joint_angles_list = []
         joint_velocities_list = []
         tcp_pose_list = []
+        color_extrinsics_list = []
         count = 0
         while True:
             subscriber.receive_message()
@@ -206,11 +208,12 @@ class RobotVis:
             joint_velocities = subscriber.joint_velocities
             tcp_pose = subscriber.tcp_pose
             color_image = subscriber.color_image
+            color_extrinsics = subscriber.color_extrinsics
             self.log_robot_states(joint_angles, entity_to_transform)
             self.log_camera(
                 color_imgs={cam: color_image for cam in self.cam_dict},
                 color_extrinsics={
-                    cam: subscriber.color_extrinsics for cam in self.cam_dict
+                    cam: color_extrinsics for cam in self.cam_dict
                 },
                 color_intrinsics=color_intrinsics,
                 depth_imgs={cam: None for cam in self.cam_dict},
@@ -225,9 +228,11 @@ class RobotVis:
                     save_path = os.path.join("../data/", time.strftime("%Y%m%d-%H%M%S"))
                     os.makedirs(save_path)
                     os.makedirs(os.path.join(save_path, "color_img"))
+                time_list.append(time.time() - start_time)
                 joint_angles_list.append(joint_angles)
                 joint_velocities_list.append(joint_velocities)
                 tcp_pose_list.append(tcp_pose)
+                color_extrinsics_list.append(color_extrinsics)
                 cv2.imwrite(
                     os.path.join(save_path, f"color_img/frame_{count}.png"),
                     cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR),
@@ -238,37 +243,83 @@ class RobotVis:
                 if recording == True:
                     recording = False
                     np.savetxt(
+                        os.path.join(save_path, "time.csv"),
+                        time_list,
+                        delimiter=",",
+                        fmt='%.6f',
+                    )
+                    np.savetxt(
                         os.path.join(save_path, "joint_angles.csv"),
                         joint_angles_list,
                         delimiter=",",
+                        fmt='%.6f',
                     )
                     np.savetxt(
                         os.path.join(save_path, "joint_velocities.csv"),
                         joint_velocities_list,
                         delimiter=",",
+                        fmt='%.6f',
                     )
                     np.savetxt(
                         os.path.join(save_path, "tcp_pose.csv"),
                         tcp_pose_list,
                         delimiter=",",
+                        fmt='%.6f',
+                    )
+                    np.savetxt(
+                         os.path.join(save_path, "color_extrinsics.csv"),
+                         color_extrinsics_list,
+                         delimiter=",",
+                         fmt='%.6f',
                     )
                     print(f"Data saved to {save_path}")
+                    time_list = []
                     joint_angles_list = []
                     joint_velocities_list = []
                     tcp_pose_list = []
+                    color_extrinsics_list = []
                     count = 0
 
     def log(
         self,
-        joint_angles,
-        joint_velocities,
-        tcp_pose,
+        time_list,
+        joint_angles_list,
+        joint_velocities_list,
+        tcp_pose_list,
         color_image_list,
+        color_extrinsics_list,
         entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]],
     ):
+        color_intrinsics = {
+            cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
+            for cam in self.cam_dict.keys()
+        }
+        depth_intrinsics = {
+            cam: cam_intr_to_mat(self.cam_dict[cam]["depth_intrinsics"])
+            for cam in self.cam_dict.keys()
+        }
+        
         start_time = time.time()
+        frame = 0
         while True:
+            if (time.time() - start_time) > time_list[frame]:
+                self.log_robot_states(joint_angles_list[frame], entity_to_transform)
+                self.log_camera(
+                    color_imgs={cam: color_image_list[frame] for cam in self.cam_dict},
+                    color_extrinsics={
+                        cam: color_extrinsics_list[frame] for cam in self.cam_dict
+                    },
+                    color_intrinsics=color_intrinsics,
+                    depth_imgs={cam: None for cam in self.cam_dict},
+                    depth_extrinsics={cam: None for cam in self.cam_dict},
+                    depth_intrinsics=depth_intrinsics,
+                )
+                self.log_action_dict(tcp_pose=tcp_pose_list[frame], joint_velocities=joint_velocities_list[frame])
 
+                frame += 1
+
+                if frame == len(time_list):
+                    return
 
     def blueprint(self):
         from rerun.blueprint import (
@@ -323,15 +374,17 @@ def rerun_log(
     cam_dict: dict,
     robot_urdf: str,
     data_path: str,
-):
-    joint_angles = np.loadtxt(os.path.join(data_path, "joint_angles.csv"))
-    joint_velocities = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"))
-    tcp_pose = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"))
+):  
+    time_list = np.loadtxt(os.path.join(data_path, "time.csv"), delimiter=",")
+    joint_angles_list = np.loadtxt(os.path.join(data_path, "joint_angles.csv"), delimiter=",")
+    joint_velocities_list = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"), delimiter=",")
+    tcp_pose_list = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"), delimiter=",")
     color_image_path = os.path.join(data_path, "color_img")
     color_image_list = [
-        cv2.imread(os.path.join(color_image_path, f"frame_{i}.png"))
-        for i in range(joint_angles.shape[0])
+        cv2.cvtColor(cv2.imread(os.path.join(color_image_path, f"frame_{i}.png")), cv2.COLOR_BGR2RGB)
+        for i in range(joint_angles_list.shape[0])
     ]
+    color_extrinsics_list = np.loadtxt(os.path.join(data_path, "color_extrinsics.csv"), delimiter=",")
 
     urdf_logger = URDFLogger(filepath=robot_urdf)
     robot_vis = RobotVis(cam_dict=cam_dict)
@@ -343,10 +396,13 @@ def rerun_log(
     urdf_logger.log()
 
     robot_vis.log(
-        joint_angles=joint_angles,
-        joint_velocities=joint_velocities,
-        tcp_pose=tcp_pose,
-        color_image_list=color_image_list
+        time_list=time_list,
+        joint_angles_list=joint_angles_list,
+        joint_velocities_list=joint_velocities_list,
+        tcp_pose_list=tcp_pose_list,
+        color_image_list=color_image_list,
+        color_extrinsics_list=color_extrinsics_list,
+        entity_to_transform=urdf_logger.entity_to_transform
     )
 
 def rerun_server(
@@ -450,6 +506,8 @@ def main(
             port,
         ),
     )
+    print("\033[91mPRESS ESC TO EXIT, AND STOP RECORDING DATA FIRST!!!\033[0m")
+
     cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
 
     robot_urdf_dict = {
@@ -465,6 +523,7 @@ def main(
 
     web_process.daemon = True
     web_process.start()
+    webbrowser.open(f"http://{bind}:{port}")
     
     stop_listener = keyboard.Listener(on_press=on_press)
     stop_listener.daemon = True
@@ -491,26 +550,14 @@ def main(
         )
         rerun_process.daemon = True
         rerun_process.start()
+    
+        global stop_flag
+        while True:
+            if stop_flag and record_state.value == 0:
+                return
     else:
         data_path = os.path.join("../data/", data_folder)
-        joint_angles = np.loadtxt(os.path.join(data_path, "joint_angles.csv"))
-        joint_velocities = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"))
-        tcp_pose = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"))
-        color_image_path = os.path.join(data_path, "color_img")
-        color_image_list = [
-            cv2.imread(os.path.join(color_image_path, f"frame_{i}.png"))
-            for i in range(joint_angles.shape[0])
-        ]
         rerun_log(cam_dict=cam_dict, robot_urdf=robot_urdf_dict[robot], data_path=data_path)
-    
-
-    webbrowser.open(f"http://{bind}:{port}")
-
-    print("\033[91mPRESS ESC TO EXIT, AND STOP RECORDING DATA FIRST!!!\033[0m")
-    global stop_flag
-    while True:
-        if stop_flag and record_state.value == 0:
-            return
 
 
 if __name__ == "__main__":
@@ -530,4 +577,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(skill_dict=skill_dict, robot=args.robot, mode=args.mode, data_path=args.data)
+    main(skill_dict=skill_dict, robot=args.robot, mode=args.mode, data_folder=args.data)
