@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
-from protobuf import robot_pb2
+from protobuf import robot_pb2, skill_pb2
 from common import (
     log_angle_rot,
     blueprint_row_images,
@@ -50,7 +50,7 @@ class TestHTTPHandle(BaseHTTPRequestHandler):
 
 
 class RobotSubscriber:
-    def __init__(self, address: str, cam_dict: dict) -> None:
+    def __init__(self, address: str) -> None:
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
         self.subscriber.connect(address)
@@ -60,10 +60,6 @@ class RobotSubscriber:
         self.tcp_pose = np.zeros(6)
         self.gripper_position = 0
         self.gripper_force = 0
-        # self.color_image_dict = {cam: None for cam in cam_dict.keys()}
-        # self.depth_image_dict = {cam: None for cam in cam_dict.keys()}
-        # self.color_extrinsics_dict = {cam: np.zeros(6) for cam in cam_dict.keys()}
-        # self.depth_extrinsics_dict = {cam: np.zeros(6) for cam in cam_dict.keys()}
         self.color_image = None
         self.color_extrinsics = np.zeros(6)
 
@@ -82,6 +78,18 @@ class RobotSubscriber:
             cv2.COLOR_BGR2RGB,
         )
         self.color_extrinsics = np.array(robot.color_extrinsics).flatten()
+
+
+class SkillPublisher:
+    def __init__(self, address: str):
+        self.context = zmq.Context()
+        self.publisher = self.context.socket(zmq.PUB)
+        self.publisher.bind(address)
+        self.skill = skill_pb2.Skill()
+
+    def publish_message(self, skill_list: list[int]):
+        self.skill.skill[:] = skill_list
+        self.publisher.send(self.skill.SerializeToString())
 
 
 class RobotVis:
@@ -197,7 +205,7 @@ class RobotVis:
     def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
         with open("../config/address.yaml", "r") as f:
             address = yaml.load(f.read(), Loader=yaml.Loader)["robot_state"]
-        subscriber = RobotSubscriber(address=address, cam_dict=self.cam_dict)
+        subscriber = RobotSubscriber(address=address)
 
         joint_angles = np.array([90, -70, 110, -130, -90, 0]) / 180 * np.pi
         self.log_robot_states(joint_angles, entity_to_transform)
@@ -220,7 +228,9 @@ class RobotVis:
                 self.log_robot_states(subscriber.joint_angles, entity_to_transform)
                 self.log_camera(
                     color_imgs={cam: subscriber.color_image for cam in self.cam_dict},
-                    color_extrinsics={cam: subscriber.color_extrinsics for cam in self.cam_dict},
+                    color_extrinsics={
+                        cam: subscriber.color_extrinsics for cam in self.cam_dict
+                    },
                     color_intrinsics=color_intrinsics,
                     depth_imgs={cam: None for cam in self.cam_dict},
                     depth_extrinsics={cam: None for cam in self.cam_dict},
@@ -330,16 +340,23 @@ def skill_server(
     bind: str = "localhost",
     port: int = 4322,
 ):
+    with open("../config/address.yaml", "r") as f:
+        address = yaml.load(f.read(), Loader=yaml.Loader)["robot_skill"]
+    skill_publisher = SkillPublisher(address=address)
+
     async def echo(websocket, path):
         async for message in websocket:
-            print(f"receive message: {message}")
             msg_list = ast.literal_eval(message)
             msg_dict = {}
             for i, msg in enumerate(msg_list):
-                msg_dict[f"skill_{i}"] = {
+                msg_dict[f"step_{i}"] = {
                     "id": msg["node"],
-                    "name": action_dict[str(msg["node"])],
+                    "skill": action_dict[str(msg["node"])],
                 }
+            print(f"receive message: {msg_dict}")
+            skill_publisher.publish_message(
+                skill_list=[msg_list[i]["node"] for i in range(len(msg_list))]
+            )
             with open("../temp/skill_list.yaml", "w") as f:
                 f.write(yaml.dump(msg_dict))
             await websocket.send(f"Echo: {message}")
@@ -371,11 +388,9 @@ def main(
     web_process.daemon = True
     web_process.start()
 
-    blueprint_process = Process(
-        target=skill_server, args=(skill_dict,)
-    )
-    blueprint_process.daemon = True
-    blueprint_process.start()
+    skill_process = Process(target=skill_server, args=(skill_dict,))
+    skill_process.daemon = True
+    skill_process.start()
 
     rerun_server(robot=robot)
 
