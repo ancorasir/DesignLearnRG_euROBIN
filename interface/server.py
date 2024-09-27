@@ -4,6 +4,7 @@ import os
 import time
 import yaml
 import ast
+import ctypes
 import socket
 import asyncio
 import websockets
@@ -11,6 +12,7 @@ import contextlib
 import zmq
 import cv2
 import numpy as np
+from pynput import keyboard
 from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
 from protobuf import robot_pb2, skill_pb2
@@ -26,8 +28,17 @@ from http.server import (
     ThreadingHTTPServer,
 )
 from functools import partial
-from multiprocessing import Process
+from multiprocessing import Process, Value
 import rerun as rr
+
+stop_flag = False
+
+
+def on_press(key):
+    global stop_flag
+    if key == keyboard.Key.esc:
+        stop_flag = True
+        return False
 
 
 class DualStackServer(ThreadingHTTPServer):
@@ -36,17 +47,6 @@ class DualStackServer(ThreadingHTTPServer):
         with contextlib.suppress(Exception):
             self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
         return super().server_bind()
-
-
-class TestHTTPHandle(BaseHTTPRequestHandler):
-    def do_POST(self):
-        print(self.headers)
-        content_len = int(self.headers.get("content-length", 0))
-        post_body = self.rfile.read(content_len)
-        print("receive message from server: ")
-        print(post_body)
-        self.send_response(200)
-        self.end_headers()
 
 
 class RobotSubscriber:
@@ -58,8 +58,6 @@ class RobotSubscriber:
         self.joint_angles = np.zeros(6)
         self.joint_velocities = np.zeros(6)
         self.tcp_pose = np.zeros(6)
-        self.gripper_position = 0
-        self.gripper_force = 0
         self.color_image = None
         self.color_extrinsics = np.zeros(6)
 
@@ -70,8 +68,6 @@ class RobotSubscriber:
         self.joint_angles = np.array(robot.joint_angles).flatten()
         self.joint_velocities = np.array(robot.joint_velocities).flatten()
         self.tcp_pose = np.array(robot.tcp_pose).flatten()
-        self.gripper_position = np.array(robot.gripper_position).flatten()
-        self.gripper_force = np.array(robot.gripper_force).flatten()
 
         self.color_image = cv2.cvtColor(
             cv2.imdecode(np.frombuffer(robot.color_image, np.uint8), cv2.IMREAD_COLOR),
@@ -182,62 +178,73 @@ class RobotVis:
     def log_action_dict(
         self,
         tcp_pose: np.ndarray = np.array([0, 0, 0, 0, 0, 0]),
-        joint_velocity: np.ndarray = np.array([0, 0, 0, 0, 0, 0]),
-        gripper_position: int = 0,
-        gripper_velocity: int = 0,
+        joint_velocities: np.ndarray = np.array([0, 0, 0, 0, 0, 0]),
     ):
 
         for i, val in enumerate(tcp_pose):
             rr.log(f"/action_dict/tcp_pose/{i}", rr.Scalar(val))
 
-        for i, vel in enumerate(joint_velocity):
+        for i, vel in enumerate(joint_velocities):
             rr.log(f"/action_dict/joint_velocity/{i}", rr.Scalar(vel))
 
-        rr.log(
-            "/action_dict/gripper_position",
-            rr.Scalar(gripper_position),
-        )
-        rr.log(
-            "/action_dict/gripper_velocity",
-            rr.Scalar(gripper_velocity),
-        )
-
-    def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
+    def run(
+        self,
+        record_state,
+        entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]],
+    ):
         with open("../config/address.yaml", "r") as f:
             address = yaml.load(f.read(), Loader=yaml.Loader)["robot_state"]
         subscriber = RobotSubscriber(address=address)
 
         joint_angles = np.array([90, -70, 110, -130, -90, 0]) / 180 * np.pi
         self.log_robot_states(joint_angles, entity_to_transform)
-        # color_imgs = {cam: None for cam in self.cam_dict.keys()}
-        # color_extrinsics = {cam: np.zeros(6) for cam in self.cam_dict.keys()}
         color_intrinsics = {
             cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
             for cam in self.cam_dict.keys()
         }
-        # depth_imgs = {cam: None for cam in self.cam_dict.keys()}
-        # depth_extrinsics = {cam: np.zeros(6) for cam in self.cam_dict.keys()}
         depth_intrinsics = {
             cam: cam_intr_to_mat(self.cam_dict[cam]["depth_intrinsics"])
             for cam in self.cam_dict.keys()
         }
-        try:
-            while True:
-                subscriber.receive_message()
-                self.log_robot_states(subscriber.joint_angles, entity_to_transform)
-                self.log_camera(
-                    color_imgs={cam: subscriber.color_image for cam in self.cam_dict},
-                    color_extrinsics={
-                        cam: subscriber.color_extrinsics for cam in self.cam_dict
-                    },
-                    color_intrinsics=color_intrinsics,
-                    depth_imgs={cam: None for cam in self.cam_dict},
-                    depth_extrinsics={cam: None for cam in self.cam_dict},
-                    depth_intrinsics=depth_intrinsics,
-                )
-                self.log_action_dict()
-        except KeyboardInterrupt:
-            sys.exit(0)
+        recording = False
+        joint_angles_list = []
+        joint_velocities_list = []
+        tcp_pose_list = []
+        while True:
+            subscriber.receive_message()
+            joint_angles = subscriber.joint_angles
+            joint_velocities = subscriber.joint_velocities
+            tcp_pose = subscriber.tcp_pose
+            color_image = subscriber.color_image
+            self.log_robot_states(joint_angles, entity_to_transform)
+            self.log_camera(
+                color_imgs={cam: color_image for cam in self.cam_dict},
+                color_extrinsics={
+                    cam: subscriber.color_extrinsics for cam in self.cam_dict
+                },
+                color_intrinsics=color_intrinsics,
+                depth_imgs={cam: None for cam in self.cam_dict},
+                depth_extrinsics={cam: None for cam in self.cam_dict},
+                depth_intrinsics=depth_intrinsics,
+            )
+            self.log_action_dict(tcp_pose=tcp_pose, joint_velocities=joint_velocities)
+            if record_state.value == 1:
+                if recording == False:
+                    recording = True
+                joint_angles_list.append(joint_angles)
+                joint_velocities_list.append(joint_velocities)
+                tcp_pose_list.append(tcp_pose)
+            else:
+                if recording == True:
+                    recording = False
+                    save_path = os.path.join("../data/", time.strftime("%Y%m%d-%H%M%S"))
+                    os.makedirs(save_path)
+                    np.savetxt(os.path.join(save_path, "joint_angles.csv"), joint_angles_list, delimiter=",")
+                    np.savetxt(os.path.join(save_path, "joint_velocities.csv"), joint_velocities_list, delimiter=",")
+                    np.savetxt(os.path.join(save_path, "tcp_pose.csv"), tcp_pose_list, delimiter=",")
+                    print(f"Data saved to {save_path}")
+                    
+
 
     def blueprint(self):
         from rerun.blueprint import (
@@ -278,11 +285,6 @@ class RobotVis:
                             ),
                             name="tcp velocity",
                         ),
-                        Vertical(
-                            TimeSeriesView(origin="/action_dict/gripper_position"),
-                            TimeSeriesView(origin="/action_dict/gripper_velocity"),
-                            name="gripper",
-                        ),
                         active_tab=0,
                     ),
                 ),
@@ -294,6 +296,7 @@ class RobotVis:
 
 
 def rerun_server(
+    record_state,
     robot: str = "ur10e_hande",
 ):
     cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
@@ -320,7 +323,7 @@ def rerun_server(
 
     urdf_logger.log()
 
-    robot_vis.run(urdf_logger.entity_to_transform)
+    robot_vis.run(record_state, urdf_logger.entity_to_transform)
 
 
 def web_server(
@@ -336,7 +339,7 @@ def web_server(
         httpd.serve_forever()
 
 
-def skill_server(
+def skill_listener(
     action_dict: dict,
     bind: str = "localhost",
     port: int = 4322,
@@ -368,6 +371,26 @@ def skill_server(
     asyncio.get_event_loop().run_forever()
 
 
+def record_listener(
+    record_state,
+    bind: str = "localhost",
+    port: int = 4323,
+):
+    async def echo(websocket, path):
+        async for message in websocket:
+            print(f"receive message: {message}")
+            if message == "1":
+                record_state.value = 1
+            elif message == "0":
+                record_state.value = 0
+            await websocket.send(f"Echo: {message}")
+
+    start_server = websockets.serve(echo, bind, port)
+
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+
+
 def main(
     skill_dict: str,
     robot: str = "ur10e_hande",
@@ -385,14 +408,40 @@ def main(
             port,
         ),
     )
+    record_state = Value(ctypes.c_int, 0)
+
     web_process.daemon = True
     web_process.start()
 
-    skill_process = Process(target=skill_server, args=(skill_dict,))
+    skill_process = Process(target=skill_listener, args=(skill_dict,))
     skill_process.daemon = True
     skill_process.start()
 
-    rerun_server(robot=robot)
+    record_process = Process(target=record_listener, args=(record_state,))
+    record_process.daemon = True
+    record_process.start()
+
+    rerun_process = Process(
+        target=rerun_server,
+        args=(
+            record_state,
+            robot,
+        ),
+    )
+    rerun_process.daemon = True
+    rerun_process.start()
+
+    stop_listener = keyboard.Listener(on_press=on_press)
+    stop_listener.daemon = True
+    stop_listener.start()
+
+    print("PRESS ESC TO EXIT...")
+    print("STOP RECORDING DATA FIRST!!!")
+    global stop_flag
+    while True:
+        if stop_flag and record_state.value == 0:
+            return
+
 
 if __name__ == "__main__":
     with open("../config/skill.yaml", "r") as f:

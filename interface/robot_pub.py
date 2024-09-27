@@ -24,14 +24,10 @@ class RobotPublisher:
         joint_angles: np.ndarray=np.zeros(6),
         joint_velocities: np.ndarray=np.zeros(6),
         tcp_pose: np.ndarray=np.zeros(6),
-        gripper_position: int=0,
-        gripper_force: int=0,
     ):
         self.robot.joint_angles[:] = joint_angles
         self.robot.joint_velocities[:] = joint_velocities
         self.robot.tcp_pose[:] = tcp_pose
-        self.robot.gripper_position = gripper_position
-        self.robot.gripper_force = gripper_force
 
         _, color_image_buf = cv2.imencode(
             ".jpg", color_image, [cv2.IMWRITE_JPEG_QUALITY, 50]
