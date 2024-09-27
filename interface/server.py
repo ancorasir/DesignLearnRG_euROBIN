@@ -222,23 +222,20 @@ class RobotVis:
             for cam in self.cam_dict.keys()
         }
 
-        try:
-            while True:
-                subscriber.receive_message()
-                self.log_robot_states(subscriber.joint_angles, entity_to_transform)
-                self.log_camera(
-                    color_imgs={cam: subscriber.color_image for cam in self.cam_dict},
-                    color_extrinsics={
-                        cam: subscriber.color_extrinsics for cam in self.cam_dict
-                    },
-                    color_intrinsics=color_intrinsics,
-                    depth_imgs={cam: None for cam in self.cam_dict},
-                    depth_extrinsics={cam: None for cam in self.cam_dict},
-                    depth_intrinsics=depth_intrinsics,
-                )
-                self.log_action_dict()
-        except KeyboardInterrupt:
-            pass
+        while True:
+            subscriber.receive_message()
+            self.log_robot_states(subscriber.joint_angles, entity_to_transform)
+            self.log_camera(
+                color_imgs={cam: subscriber.color_image for cam in self.cam_dict},
+                color_extrinsics={
+                    cam: subscriber.color_extrinsics for cam in self.cam_dict
+                },
+                color_intrinsics=color_intrinsics,
+                depth_imgs={cam: None for cam in self.cam_dict},
+                depth_extrinsics={cam: None for cam in self.cam_dict},
+                depth_intrinsics=depth_intrinsics,
+            )
+            self.log_action_dict()
 
     def blueprint(self):
         from rerun.blueprint import (
@@ -375,25 +372,26 @@ def main(
     bind: str = "127.0.0.1",
     port: int = 8000,
 ) -> None:
+    try:
+        web_process = Process(
+            target=web_server,
+            args=(
+                server_class,
+                handler_class,
+                bind,
+                port,
+            ),
+        )
+        web_process.daemon = True
+        web_process.start()
 
-    web_process = Process(
-        target=web_server,
-        args=(
-            server_class,
-            handler_class,
-            bind,
-            port,
-        ),
-    )
-    web_process.daemon = True
-    web_process.start()
+        skill_process = Process(target=skill_server, args=(skill_dict,))
+        skill_process.daemon = True
+        skill_process.start()
 
-    skill_process = Process(target=skill_server, args=(skill_dict,))
-    skill_process.daemon = True
-    skill_process.start()
-
-    rerun_server(robot=robot)
-
+        rerun_server(robot=robot)
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 if __name__ == "__main__":
     with open("../config/skill.yaml", "r") as f:
