@@ -70,4 +70,4 @@ def main(fps: int):
         print("\nPublisher stopped.")
 
 if __name__ == "__main__":
-    main(fps=20)
+    main(fps=30)

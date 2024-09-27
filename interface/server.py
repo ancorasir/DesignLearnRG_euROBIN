@@ -210,6 +210,7 @@ class RobotVis:
         joint_angles_list = []
         joint_velocities_list = []
         tcp_pose_list = []
+        count = 0
         while True:
             subscriber.receive_message()
             joint_angles = subscriber.joint_angles
@@ -230,21 +231,43 @@ class RobotVis:
             self.log_action_dict(tcp_pose=tcp_pose, joint_velocities=joint_velocities)
             if record_state.value == 1:
                 if recording == False:
+                    start_time = time.time()
                     recording = True
+                    save_path = os.path.join("../data/", time.strftime("%Y%m%d-%H%M%S"))
+                    os.makedirs(save_path)
+                    os.makedirs(os.path.join(save_path, "color_img"))
                 joint_angles_list.append(joint_angles)
                 joint_velocities_list.append(joint_velocities)
                 tcp_pose_list.append(tcp_pose)
+                cv2.imwrite(
+                    os.path.join(save_path, f"color_img/frame_{count}.png"),
+                    cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR),
+                )
+                count += 1
+                print(f"Saving, fps: {count/(time.time() - start_time)}", end="\r")
             else:
                 if recording == True:
                     recording = False
-                    save_path = os.path.join("../data/", time.strftime("%Y%m%d-%H%M%S"))
-                    os.makedirs(save_path)
-                    np.savetxt(os.path.join(save_path, "joint_angles.csv"), joint_angles_list, delimiter=",")
-                    np.savetxt(os.path.join(save_path, "joint_velocities.csv"), joint_velocities_list, delimiter=",")
-                    np.savetxt(os.path.join(save_path, "tcp_pose.csv"), tcp_pose_list, delimiter=",")
+                    np.savetxt(
+                        os.path.join(save_path, "joint_angles.csv"),
+                        joint_angles_list,
+                        delimiter=",",
+                    )
+                    np.savetxt(
+                        os.path.join(save_path, "joint_velocities.csv"),
+                        joint_velocities_list,
+                        delimiter=",",
+                    )
+                    np.savetxt(
+                        os.path.join(save_path, "tcp_pose.csv"),
+                        tcp_pose_list,
+                        delimiter=",",
+                    )
                     print(f"Data saved to {save_path}")
-                    
-
+                    joint_angles_list = []
+                    joint_velocities_list = []
+                    tcp_pose_list = []
+                    count = 0
 
     def blueprint(self):
         from rerun.blueprint import (
