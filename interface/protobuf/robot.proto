@@ -6,7 +6,8 @@ message Robot {
     repeated double joint_angles = 1;
     repeated double joint_velocities = 2;
     repeated double tcp_pose = 3;
-    repeated double gripper_position = 4;
-    repeated double gripper_force = 5;
-    bytes image = 6;
+    double gripper_position = 4;
+    double gripper_force = 5;
+    bytes color_image = 6;
+    repeated double color_extrinsics = 7;
 }

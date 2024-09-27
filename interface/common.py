@@ -113,3 +113,7 @@ def h5_tree(val, pre=""):
                 h5_tree(val, pre + "│   ")
             else:
                 print(pre + "├── " + key + " (%d)" % len(val))
+
+def cam_intr_to_mat(intrinsic: np.ndarray) -> np.ndarray:
+    """Converts an intrinsic camera matrix to a 3x3 matrix"""
+    return np.array([[intrinsic[0], 0, intrinsic[2]], [0, intrinsic[1], intrinsic[3]], [0, 0, 1]])

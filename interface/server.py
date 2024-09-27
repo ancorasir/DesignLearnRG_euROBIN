@@ -14,7 +14,12 @@ import numpy as np
 from rerun_loader_urdf import URDFLogger
 from scipy.spatial.transform import Rotation
 from protobuf import robot_pb2
-from common import log_angle_rot, blueprint_row_images, link_to_world_transform
+from common import (
+    log_angle_rot,
+    blueprint_row_images,
+    link_to_world_transform,
+    cam_intr_to_mat,
+)
 from http.server import (
     SimpleHTTPRequestHandler,
     BaseHTTPRequestHandler,
@@ -45,7 +50,7 @@ class TestHTTPHandle(BaseHTTPRequestHandler):
 
 
 class RobotSubscriber:
-    def __init__(self, address: str) -> None:
+    def __init__(self, address: str, cam_dict: dict) -> None:
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
         self.subscriber.connect(address)
@@ -55,22 +60,28 @@ class RobotSubscriber:
         self.tcp_pose = np.zeros(6)
         self.gripper_position = 0
         self.gripper_force = 0
-        self.image = None
+        # self.color_image_dict = {cam: None for cam in cam_dict.keys()}
+        # self.depth_image_dict = {cam: None for cam in cam_dict.keys()}
+        # self.color_extrinsics_dict = {cam: np.zeros(6) for cam in cam_dict.keys()}
+        # self.depth_extrinsics_dict = {cam: np.zeros(6) for cam in cam_dict.keys()}
+        self.color_image = None
+        self.color_extrinsics = np.zeros(6)
 
     def receive_message(self):
-        robot_state = robot_pb2.Robot()
-        robot_state.ParseFromString(self.subscriber.recv())
+        robot = robot_pb2.Robot()
+        robot.ParseFromString(self.subscriber.recv())
 
-        self.joint_angles = np.array(robot_state.joint_angles).flatten()
-        self.joint_velocities = np.array(robot_state.joint_velocities).flatten()
-        self.tcp_pose = np.array(robot_state.tcp_pose).flatten()
-        self.gripper_position = np.array(robot_state.gripper_position).flatten()
-        self.gripper_force = np.array(robot_state.gripper_force).flatten()
+        self.joint_angles = np.array(robot.joint_angles).flatten()
+        self.joint_velocities = np.array(robot.joint_velocities).flatten()
+        self.tcp_pose = np.array(robot.tcp_pose).flatten()
+        self.gripper_position = np.array(robot.gripper_position).flatten()
+        self.gripper_force = np.array(robot.gripper_force).flatten()
 
-        self.image = cv2.cvtColor(
-            cv2.imdecode(np.frombuffer(robot_state.image, np.uint8), cv2.IMREAD_COLOR),
+        self.color_image = cv2.cvtColor(
+            cv2.imdecode(np.frombuffer(robot.color_image, np.uint8), cv2.IMREAD_COLOR),
             cv2.COLOR_BGR2RGB,
         )
+        self.color_extrinsics = np.array(robot.color_extrinsics).flatten()
 
 
 class RobotVis:
@@ -107,9 +118,9 @@ class RobotVis:
     def log_camera(
         self,
         color_imgs: dict[str, np.ndarray],
-        depth_imgs: dict[str, np.ndarray],
         color_extrinsics: dict[str, np.ndarray],
         color_intrinsics: dict[str, np.ndarray],
+        depth_imgs: dict[str, np.ndarray],
         depth_extrinsics: dict[str, np.ndarray],
         depth_intrinsics: dict[str, np.ndarray],
         depth_units: int = 0.001,
@@ -184,40 +195,38 @@ class RobotVis:
         )
 
     def run(self, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]):
-        with open('../config/address.yaml', 'r') as f:
-            address_dict = yaml.load(f.read(), Loader=yaml.Loader)
-        robot_subscriber = RobotSubscriber(address=address_dict['robot_state'])
-        
-        joint_angles = np.array([90, -70, 110, -130, -90, 90]) / 180 * np.pi
+        with open("../config/address.yaml", "r") as f:
+            address = yaml.load(f.read(), Loader=yaml.Loader)["robot_state"]
+        subscriber = RobotSubscriber(address=address, cam_dict=self.cam_dict)
+
+        joint_angles = np.array([90, -70, 110, -130, -90, 0]) / 180 * np.pi
         self.log_robot_states(joint_angles, entity_to_transform)
-        color_imgs = {}
-        depth_imgs = {}
-        color_extrinsics = {}
-        color_intrinsics = {}
-        depth_extrinsics = {}
-        depth_intrinsics = {}
-        color_imgs["rs-d435i"] = cv2.cvtColor(
-            cv2.imread("../temp/color.png"), cv2.COLOR_BGR2RGB
-        )
-        depth_imgs["rs-d435i"] = None
-        color_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
-        color_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
-        depth_extrinsics["rs-d435i"] = [0.1, 0.5, 0.5, 0, 0, 0]
-        depth_intrinsics["rs-d435i"] = [[326, 0, 391], [0, 325, 392], [0, 0, 1]]
+        # color_imgs = {cam: None for cam in self.cam_dict.keys()}
+        # color_extrinsics = {cam: np.zeros(6) for cam in self.cam_dict.keys()}
+        color_intrinsics = {
+            cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
+            for cam in self.cam_dict.keys()
+        }
+        # depth_imgs = {cam: None for cam in self.cam_dict.keys()}
+        # depth_extrinsics = {cam: np.zeros(6) for cam in self.cam_dict.keys()}
+        depth_intrinsics = {
+            cam: cam_intr_to_mat(self.cam_dict[cam]["depth_intrinsics"])
+            for cam in self.cam_dict.keys()
+        }
 
         try:
             while True:
-                self.log_robot_states(joint_angles, entity_to_transform)
+                subscriber.receive_message()
+                self.log_robot_states(subscriber.joint_angles, entity_to_transform)
                 self.log_camera(
-                    color_imgs,
-                    depth_imgs,
-                    color_extrinsics,
-                    color_intrinsics,
-                    depth_extrinsics,
-                    depth_intrinsics,
+                    color_imgs={cam: subscriber.color_image for cam in self.cam_dict},
+                    color_extrinsics={cam: subscriber.color_extrinsics for cam in self.cam_dict},
+                    color_intrinsics=color_intrinsics,
+                    depth_imgs={cam: None for cam in self.cam_dict},
+                    depth_extrinsics={cam: None for cam in self.cam_dict},
+                    depth_intrinsics=depth_intrinsics,
                 )
                 self.log_action_dict()
-                time.sleep(0.1)
         except KeyboardInterrupt:
             pass
 
