@@ -1,2 +1,2 @@
 robot_state: "tcp://127.0.0.1:6601"
-robot_action: "tcp://127.0.0.1:6602"
+robot_skill: "tcp://127.0.0.1:6602"

@@ -325,7 +325,7 @@ def web_server(
         httpd.serve_forever()
 
 
-def blueprint_server(
+def skill_server(
     action_dict: dict,
     bind: str = "localhost",
     port: int = 4322,
@@ -337,11 +337,11 @@ def blueprint_server(
             msg_list = ast.literal_eval(message)
             msg_dict = {}
             for i, msg in enumerate(msg_list):
-                msg_dict[f"action_{i}"] = {
+                msg_dict[f"skill_{i}"] = {
                     "id": msg["node"],
                     "name": action_dict[str(msg["node"])],
                 }
-            with open("../temp/action.yaml", "w") as f:
+            with open("../temp/skill_list.yaml", "w") as f:
                 f.write(yaml.dump(msg_dict))
             await websocket.send(f"Echo: {message}")
 
@@ -352,7 +352,7 @@ def blueprint_server(
 
 
 def main(
-    action_dict: str,
+    skill_dict: str,
     robot: str = "ur10e_hande",
     server_class=DualStackServer,
     handler_class=SimpleHTTPRequestHandler,
@@ -373,7 +373,7 @@ def main(
     web_process.start()
 
     blueprint_process = Process(
-        target=blueprint_server, args=(action_dict, "localhost", 4322)
+        target=skill_server, args=(skill_dict, "localhost", 4322)
     )
     blueprint_process.daemon = True
     blueprint_process.start()
@@ -382,12 +382,6 @@ def main(
 
 
 if __name__ == "__main__":
-    action_dict = {
-        "0": "find board & press button",
-        "1": "move slider to setpoints on screen",
-        "2": "plug in probe into test port",
-        "3": "open door, probe circuit",
-        "4": "wrap cable, replace probe",
-        "5": "press stop trial button",
-    }
-    main(action_dict=action_dict, robot="ur10e_hande_d435i")
+    with open("../config/skill.yaml", "r") as f:
+        skill_dict = yaml.load(f.read(), Loader=yaml.Loader)
+    main(skill_dict=skill_dict, robot="ur10e_hande_d435i")
