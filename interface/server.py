@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import os
+import argparse
 import time
 import yaml
 import ast
@@ -8,6 +9,7 @@ import ctypes
 import socket
 import asyncio
 import websockets
+import webbrowser
 import contextlib
 import zmq
 import cv2
@@ -22,11 +24,7 @@ from common import (
     link_to_world_transform,
     cam_intr_to_mat,
 )
-from http.server import (
-    SimpleHTTPRequestHandler,
-    BaseHTTPRequestHandler,
-    ThreadingHTTPServer,
-)
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from functools import partial
 from multiprocessing import Process, Value
 import rerun as rr
@@ -107,15 +105,6 @@ class RobotVis:
             joint_origins.append(joint_org)
 
             log_angle_rot(entity_to_transform, joint_idx + 1, angle)
-
-        if self.prev_joint_origins is not None:
-            for traj in range(len(joint_angles)):
-                rr.log(
-                    f"trajectory/{traj}",
-                    rr.LineStrips3D(
-                        [joint_origins[traj], self.prev_joint_origins[traj]],
-                    ),
-                )
 
         self.prev_joint_origins = joint_origins
 
@@ -269,6 +258,18 @@ class RobotVis:
                     tcp_pose_list = []
                     count = 0
 
+    def log(
+        self,
+        joint_angles,
+        joint_velocities,
+        tcp_pose,
+        color_image_list,
+        entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]],
+    ):
+        start_time = time.time()
+        while True:
+
+
     def blueprint(self):
         from rerun.blueprint import (
             Blueprint,
@@ -284,7 +285,7 @@ class RobotVis:
         return Blueprint(
             Horizontal(
                 Vertical(
-                    Spatial3DView(name="spatial view", origin="/", contents=["/**"]),
+                    Spatial3DView(name="3D Scene", origin="/", contents=["/**"]),
                     blueprint_row_images(
                         [f"/cameras/{cam}/color" for cam in self.cam_dict.keys()]
                     ),
@@ -313,36 +314,52 @@ class RobotVis:
                 ),
                 column_shares=[3, 1],
             ),
-            SelectionPanel(expanded=False),
-            TimePanel(expanded=False),
+            SelectionPanel(state="hidden"),
+            TimePanel(state="collapsed"),
         )
 
 
-def rerun_server(
-    record_state,
-    robot: str = "ur10e_hande",
+def rerun_log(
+    cam_dict: dict,
+    robot_urdf: str,
+    data_path: str,
 ):
-    cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
+    joint_angles = np.loadtxt(os.path.join(data_path, "joint_angles.csv"))
+    joint_velocities = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"))
+    tcp_pose = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"))
+    color_image_path = os.path.join(data_path, "color_img")
+    color_image_list = [
+        cv2.imread(os.path.join(color_image_path, f"frame_{i}.png"))
+        for i in range(joint_angles.shape[0])
+    ]
 
-    robot_urdf_dict = {
-        "panda": "franka_description/panda.urdf",
-        "panda_arg85": "franka_description/panda_arg85.urdf",
-        "panda_hande": "franka_description/panda_hande.urdf",
-        "panda_hande_d435i": "franka_description/panda_hande_d435i.urdf",
-        "ur10e": "ur_description/ur10e.urdf",
-        "ur10e_arg85": "ur_description/ur10e_arg85.urdf",
-        "ur10e_hande": "ur_description/ur10e_hande.urdf",
-        "ur10e_hande_d435i": "ur_description/ur10e_hande_d435i.urdf",
-    }
-
-    urdf_logger = URDFLogger(filepath=robot_urdf_dict[robot])
+    urdf_logger = URDFLogger(filepath=robot_urdf)
     robot_vis = RobotVis(cam_dict=cam_dict)
 
     rr.init("Robot Interface")
     rr.serve(open_browser=False, ws_port=4321, web_port=8000)
     rr.send_blueprint(robot_vis.blueprint())
-    rr.set_time_nanos("real_time", 0)
-    time.sleep(1)
+
+    urdf_logger.log()
+
+    robot_vis.log(
+        joint_angles=joint_angles,
+        joint_velocities=joint_velocities,
+        tcp_pose=tcp_pose,
+        color_image_list=color_image_list
+    )
+
+def rerun_server(
+    record_state,
+    cam_dict: dict,
+    robot_urdf: str,
+):
+    urdf_logger = URDFLogger(filepath=robot_urdf)
+    robot_vis = RobotVis(cam_dict=cam_dict)
+
+    rr.init("Robot Interface")
+    rr.serve(open_browser=False, ws_port=4321, web_port=8000)
+    rr.send_blueprint(robot_vis.blueprint())
 
     urdf_logger.log()
 
@@ -417,6 +434,8 @@ def record_listener(
 def main(
     skill_dict: str,
     robot: str = "ur10e_hande",
+    mode: str = "real-time",
+    data_folder: str = "",
     server_class=DualStackServer,
     handler_class=SimpleHTTPRequestHandler,
     bind: str = "127.0.0.1",
@@ -431,35 +450,63 @@ def main(
             port,
         ),
     )
-    record_state = Value(ctypes.c_int, 0)
+    cam_dict = yaml.load(open("../config/camera.yaml"), Loader=yaml.FullLoader)
+
+    robot_urdf_dict = {
+        "panda": "franka_description/panda.urdf",
+        "panda_arg85": "franka_description/panda_arg85.urdf",
+        "panda_hande": "franka_description/panda_hande.urdf",
+        "panda_hande_d435i": "franka_description/panda_hande_d435i.urdf",
+        "ur10e": "ur_description/ur10e.urdf",
+        "ur10e_arg85": "ur_description/ur10e_arg85.urdf",
+        "ur10e_hande": "ur_description/ur10e_hande.urdf",
+        "ur10e_hande_d435i": "ur_description/ur10e_hande_d435i.urdf",
+    }
 
     web_process.daemon = True
     web_process.start()
-
-    skill_process = Process(target=skill_listener, args=(skill_dict,))
-    skill_process.daemon = True
-    skill_process.start()
-
-    record_process = Process(target=record_listener, args=(record_state,))
-    record_process.daemon = True
-    record_process.start()
-
-    rerun_process = Process(
-        target=rerun_server,
-        args=(
-            record_state,
-            robot,
-        ),
-    )
-    rerun_process.daemon = True
-    rerun_process.start()
-
+    
     stop_listener = keyboard.Listener(on_press=on_press)
     stop_listener.daemon = True
     stop_listener.start()
 
-    print("PRESS ESC TO EXIT...")
-    print("STOP RECORDING DATA FIRST!!!")
+    if mode == "real-time":
+        record_state = Value(ctypes.c_int, 0)
+
+        skill_process = Process(target=skill_listener, args=(skill_dict,))
+        skill_process.daemon = True
+        skill_process.start()
+
+        record_process = Process(target=record_listener, args=(record_state,))
+        record_process.daemon = True
+        record_process.start()
+
+        rerun_process = Process(
+            target=rerun_server,
+            args=(
+                record_state,
+                cam_dict,
+                robot_urdf_dict[robot],
+            ),
+        )
+        rerun_process.daemon = True
+        rerun_process.start()
+    else:
+        data_path = os.path.join("../data/", data_folder)
+        joint_angles = np.loadtxt(os.path.join(data_path, "joint_angles.csv"))
+        joint_velocities = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"))
+        tcp_pose = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"))
+        color_image_path = os.path.join(data_path, "color_img")
+        color_image_list = [
+            cv2.imread(os.path.join(color_image_path, f"frame_{i}.png"))
+            for i in range(joint_angles.shape[0])
+        ]
+        rerun_log(cam_dict=cam_dict, robot_urdf=robot_urdf_dict[robot], data_path=data_path)
+    
+
+    webbrowser.open(f"http://{bind}:{port}")
+
+    print("\033[91mPRESS ESC TO EXIT, AND STOP RECORDING DATA FIRST!!!\033[0m")
     global stop_flag
     while True:
         if stop_flag and record_state.value == 0:
@@ -469,4 +516,18 @@ def main(
 if __name__ == "__main__":
     with open("../config/skill.yaml", "r") as f:
         skill_dict = yaml.load(f.read(), Loader=yaml.Loader)
-    main(skill_dict=skill_dict, robot="ur10e_hande_d435i")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-m", "--mode", default="real-time", type=str, help="set the mode of interface"
+    )
+    parser.add_argument(
+        "-r", "--robot", default="ur10e_hande_d435i", type=str, help="select the robot"
+    )
+    parser.add_argument(
+        "-d", "--data", default="", type=str, help="select the data to replay"
+    )
+
+    args = parser.parse_args()
+
+    main(skill_dict=skill_dict, robot=args.robot, mode=args.mode, data_path=args.data)

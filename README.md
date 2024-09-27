@@ -17,9 +17,9 @@ The robot system used in the competition consists of:
 - Fingertip: [3D-printed fingertip](https://cad.onshape.com/documents/43edc50e275c72eace7a4839)
 - RGB-D Camera: [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)
 - Camera bracket: [CNC-milled camera bracket](https://cad.onshape.com/documents/01d4267b0af8aab9d6acb1ab)
-- Fill light: [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
+- Fill light (Optional): [ZHIYUN FIVERAY M20](https://www.zhiyun-tech.com/en/product/detail/867)
 
-And there are also the [task board](docs/task_board.pdf) and [Hikvision NP-Y1-S smoke detector](https://detail.tmall.com/item.htm?id=654643896582) used as task objects.
+And there is also the [task board](docs/task_board.pdf) and the [Hikvision NP-Y1-S smoke detector](https://detail.tmall.com/item.htm?id=654643896582) used as task objects.
 
 ## Software Dependencies
 
@@ -44,7 +44,7 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
-An interface is provided in `interface/`, which consists of 3D visualization and data curves of robot. You can also set the order of robot actions. To open the interface, run:
+An interface is provided in `interface/`, which consists of 3D visualization and data curves of the robot. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
 cd interface
@@ -61,7 +61,14 @@ The data recorded during trials is available at [Google Drive](https://drive.goo
 - [x] Trajectories of UR10e's tool center point (TCP)
 - [x] Images captured by Intel Realsense D435i camera
 
-All data is recorded at 30 Hz, and saved as csv files.
+All data is recorded at 30 Hz, and you can place it into `data/` folder, and run the following code to visualize:
+
+```bash
+cd interface
+python server.py
+```
+
+Then you can view the data in the interface at `http://127.0.0.1:8000`.
 
 ## License
 
