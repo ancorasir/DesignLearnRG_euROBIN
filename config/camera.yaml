@@ -7,5 +7,4 @@ rsd435i:
   fps: 30
   depth: false
   color: true
-  color_intrinsics: [617.0, 617.0, 320.0, 240.0]
-  depth_intrinsics: [617.0, 617.0, 320.0, 240.0]
+  color_intrinsics: [919.606, 917.293, 665.883, 373.948]

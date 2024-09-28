@@ -44,7 +44,7 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
-An interface is provided in `interface/`, which consists of 3D visualization and data curves of the robot. You can also set the order of robot actions. To open the interface, run:
+An interface is provided in `interface/`, including 3D scene and curves, to visualize and record the robot data. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
 cd interface

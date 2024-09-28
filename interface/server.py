@@ -118,6 +118,11 @@ class RobotVis:
         depth_intrinsics: dict[str, np.ndarray],
         depth_units: int = 0.001,
     ):
+        rot_z_mat = np.array([
+            [-1, 0, 0],
+            [0, -1, 0],
+            [0, 0, 1],
+        ])
         for cam in self.cam_dict.keys():
             color_extrinsic = color_extrinsics[cam]
             color_intrinsic = color_intrinsics[cam]
@@ -132,13 +137,13 @@ class RobotVis:
                 rr.log(
                     f"/cameras/{cam}/color",
                     rr.Transform3D(
-                        translation=np.array(color_extrinsic[:3]),
-                        mat3x3=Rotation.from_euler(
+                        translation=np.dot(rot_z_mat, np.array(color_extrinsic[:3])),
+                        mat3x3=np.dot(rot_z_mat, Rotation.from_euler(
                             "xyz", np.array(color_extrinsic[3:])
-                        ).as_matrix(),
+                        ).as_matrix()),
                     ),
                 )
-                rr.log(f"/cameras/{cam}/color", rr.Image(color_imgs[cam]))
+                rr.log(f"/cameras/{cam}/color", rr.Image(color_img))
 
             depth_extrinsic = depth_extrinsics[cam]
             depth_intrinsic = depth_intrinsics[cam]
@@ -191,10 +196,6 @@ class RobotVis:
             cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
             for cam in self.cam_dict.keys()
         }
-        depth_intrinsics = {
-            cam: cam_intr_to_mat(self.cam_dict[cam]["depth_intrinsics"])
-            for cam in self.cam_dict.keys()
-        }
         recording = False
         time_list = []
         joint_angles_list = []
@@ -218,7 +219,7 @@ class RobotVis:
                 color_intrinsics=color_intrinsics,
                 depth_imgs={cam: None for cam in self.cam_dict},
                 depth_extrinsics={cam: None for cam in self.cam_dict},
-                depth_intrinsics=depth_intrinsics,
+                depth_intrinsics={cam: None for cam in self.cam_dict},
             )
             self.log_action_dict(tcp_pose=tcp_pose, joint_velocities=joint_velocities)
             if record_state.value == 1:
@@ -358,7 +359,7 @@ class RobotVis:
                                 TimeSeriesView(origin=f"/action_dict/tcp_pose/{i}")
                                 for i in range(6)
                             ),
-                            name="tcp velocity",
+                            name="tcp pose",
                         ),
                         active_tab=0,
                     ),
@@ -449,7 +450,7 @@ def skill_listener(
             msg_list = ast.literal_eval(message)
             msg_dict = {}
             for i, msg in enumerate(msg_list):
-                msg_dict[f"step_{i}"] = {
+                msg_dict[f"command_{i}"] = {
                     "id": msg["node"],
                     "skill": action_dict[str(msg["node"])],
                 }
