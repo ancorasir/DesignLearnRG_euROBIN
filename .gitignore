@@ -2,3 +2,6 @@ interface/__pycache__/
 interface/protobuf/__pycache__/
 temp/
 data/
+motion/__pycache__/
+motion/message/__pycache__/
+motion/tasks/__pycache__/

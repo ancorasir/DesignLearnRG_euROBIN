@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package detection;
+
+message Vision {
+    bool success = 1;
+    repeated double pose = 2;
+    bool direction = 3;
+}
