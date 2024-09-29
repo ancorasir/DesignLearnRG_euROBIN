@@ -295,10 +295,6 @@ class RobotVis:
             cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
             for cam in self.cam_dict.keys()
         }
-        depth_intrinsics = {
-            cam: cam_intr_to_mat(self.cam_dict[cam]["depth_intrinsics"])
-            for cam in self.cam_dict.keys()
-        }
         
         start_time = time.time()
         frame = 0
@@ -313,7 +309,7 @@ class RobotVis:
                     color_intrinsics=color_intrinsics,
                     depth_imgs={cam: None for cam in self.cam_dict},
                     depth_extrinsics={cam: None for cam in self.cam_dict},
-                    depth_intrinsics=depth_intrinsics,
+                    depth_intrinsics={cam: None for cam in self.cam_dict},
                 )
                 self.log_action_dict(tcp_pose=tcp_pose_list[frame], joint_velocities=joint_velocities_list[frame])
 
@@ -376,6 +372,7 @@ def rerun_log(
     robot_urdf: str,
     data_path: str,
 ):  
+    print("Logging Data...")
     time_list = np.loadtxt(os.path.join(data_path, "time.csv"), delimiter=",")
     joint_angles_list = np.loadtxt(os.path.join(data_path, "joint_angles.csv"), delimiter=",")
     joint_velocities_list = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"), delimiter=",")
