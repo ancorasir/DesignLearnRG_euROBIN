@@ -45,6 +45,13 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
+To run the tasks in normal order, first go to `./motion/`, and run:
+```bash
+python scripts/execute_task.py
+```
+
+You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in `./motion/tasks/`.
+
 An interface is provided in `./interface/`, including 3D scene and curves, to visualize and record the robot data. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
@@ -53,13 +60,6 @@ python server.py
 ```
 
 The interface will be available at `http://127.0.0.1:8000`.
-
-To run the tasks in normal order, first go to `./motion/`, and run:
-```bash
-python scripts/execute_task.py
-```
-
-You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in `./motion/tasks/`.
 
 ## Data Availability
 
