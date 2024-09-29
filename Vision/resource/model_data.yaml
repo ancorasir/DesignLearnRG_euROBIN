@@ -1,0 +1,6 @@
+%YAML:1.0
+---
+BlueButton: [ 0., 0., 0. ]
+RedButton: [ 0., 0.014, 0. ]
+RedHole: [ 0.058, 0.025, 0. ]
+TaskboardDepth: 0.1

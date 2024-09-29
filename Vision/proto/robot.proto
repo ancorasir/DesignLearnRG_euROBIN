@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package robot;
+
+message Robot {
+    repeated double joint_angles = 1;
+    repeated double joint_velocities = 2;
+    repeated double tcp_pose = 3;
+    bytes color_image = 4;
+    repeated double color_extrinsics = 5;
+}
