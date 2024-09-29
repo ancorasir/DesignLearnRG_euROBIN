@@ -28,6 +28,7 @@ The code is developed with Python, and tested on Ubuntu 20.04 with the following
 - [Real-time Data Exchange (RTDE)](https://www.universal-robots.com/articles/ur/interface-communication/real-time-data-exchange-rtde-guide/)
 - [Intel RealSense SDK 2.0](https://www.intelrealsense.com/sdk-2/)
 - [Rerun](https://rerun.io/)
+- [YOLOv8](https://github.com/ultralytics/ultralytics)
 
 ## Quick Start
 
@@ -52,6 +53,13 @@ python server.py
 ```
 
 The interface will be available at `http://127.0.0.1:8000`.
+
+To run the tasks in normal order, first go to ./motion, and run:
+```bash
+python scripts/execute_task.py
+```
+
+You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in ./motion/tasks.
 
 ## Data Availability
 
