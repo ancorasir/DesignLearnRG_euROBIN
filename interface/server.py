@@ -57,7 +57,7 @@ class RobotSubscriber:
         self.joint_velocities = np.zeros(6)
         self.tcp_pose = np.zeros(6)
         self.color_image = None
-        self.color_extrinsics = np.zeros(6)
+        self.color_position = np.zeros(6)
 
     def receive_message(self):
         robot = robot_pb2.Robot()
@@ -71,7 +71,7 @@ class RobotSubscriber:
             cv2.imdecode(np.frombuffer(robot.color_image, np.uint8), cv2.IMREAD_COLOR),
             cv2.COLOR_BGR2RGB,
         )
-        self.color_extrinsics = np.array(robot.color_extrinsics).flatten()
+        self.color_position = np.array(robot.color_position).flatten()
 
 
 class SkillPublisher:
@@ -111,20 +111,18 @@ class RobotVis:
     def log_camera(
         self,
         color_imgs: dict[str, np.ndarray],
-        color_extrinsics: dict[str, np.ndarray],
+        color_position: dict[str, np.ndarray],
         color_intrinsics: dict[str, np.ndarray],
-        depth_imgs: dict[str, np.ndarray],
-        depth_extrinsics: dict[str, np.ndarray],
-        depth_intrinsics: dict[str, np.ndarray],
-        depth_units: int = 0.001,
     ):
-        rot_z_mat = np.array([
-            [-1, 0, 0],
-            [0, -1, 0],
-            [0, 0, 1],
-        ])
+        rot_z_mat = np.array(
+            [
+                [-1, 0, 0],
+                [0, -1, 0],
+                [0, 0, 1],
+            ]
+        )
         for cam in self.cam_dict.keys():
-            color_extrinsic = color_extrinsics[cam]
+            color_extrinsic = color_position[cam]
             color_intrinsic = color_intrinsics[cam]
             color_img = color_imgs[cam]
             if color_img is not None:
@@ -138,36 +136,15 @@ class RobotVis:
                     f"/cameras/{cam}/color",
                     rr.Transform3D(
                         translation=np.dot(rot_z_mat, np.array(color_extrinsic[:3])),
-                        mat3x3=np.dot(rot_z_mat, Rotation.from_euler(
-                            "xyz", np.array(color_extrinsic[3:])
-                        ).as_matrix()),
+                        mat3x3=np.dot(
+                            rot_z_mat,
+                            Rotation.from_euler(
+                                "xyz", np.array(color_extrinsic[3:])
+                            ).as_matrix(),
+                        ),
                     ),
                 )
                 rr.log(f"/cameras/{cam}/color", rr.Image(color_img))
-
-            depth_extrinsic = depth_extrinsics[cam]
-            depth_intrinsic = depth_intrinsics[cam]
-            depth_img = depth_imgs[cam]
-            if depth_img is not None:
-                rr.log(
-                    f"/cameras/{cam}/depth",
-                    rr.Pinhole(
-                        image_from_camera=depth_intrinsic,
-                    ),
-                )
-                rr.log(
-                    f"/cameras/{cam}/depth",
-                    rr.Transform3D(
-                        translation=np.array(depth_extrinsic[:3]),
-                        mat3x3=Rotation.from_euler(
-                            "xyz", np.array(depth_extrinsic[3:])
-                        ).as_matrix(),
-                    ),
-                )
-                rr.log(
-                    f"cameras/{cam}/depth",
-                    rr.DepthImage(depth_img, meter=10 / depth_units),
-                )
 
     def log_action_dict(
         self,
@@ -201,7 +178,7 @@ class RobotVis:
         joint_angles_list = []
         joint_velocities_list = []
         tcp_pose_list = []
-        color_extrinsics_list = []
+        color_position_list = []
         count = 0
         while True:
             subscriber.receive_message()
@@ -209,17 +186,12 @@ class RobotVis:
             joint_velocities = subscriber.joint_velocities
             tcp_pose = subscriber.tcp_pose
             color_image = subscriber.color_image
-            color_extrinsics = subscriber.color_extrinsics
+            color_position = subscriber.color_position
             self.log_robot_states(joint_angles, entity_to_transform)
             self.log_camera(
                 color_imgs={cam: color_image for cam in self.cam_dict},
-                color_extrinsics={
-                    cam: color_extrinsics for cam in self.cam_dict
-                },
+                color_position={cam: color_position for cam in self.cam_dict},
                 color_intrinsics=color_intrinsics,
-                depth_imgs={cam: None for cam in self.cam_dict},
-                depth_extrinsics={cam: None for cam in self.cam_dict},
-                depth_intrinsics={cam: None for cam in self.cam_dict},
             )
             self.log_action_dict(tcp_pose=tcp_pose, joint_velocities=joint_velocities)
             if record_state.value == 1:
@@ -233,7 +205,7 @@ class RobotVis:
                 joint_angles_list.append(joint_angles)
                 joint_velocities_list.append(joint_velocities)
                 tcp_pose_list.append(tcp_pose)
-                color_extrinsics_list.append(color_extrinsics)
+                color_position_list.append(color_position)
                 cv2.imwrite(
                     os.path.join(save_path, f"color_img/frame_{count}.png"),
                     cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR),
@@ -247,38 +219,38 @@ class RobotVis:
                         os.path.join(save_path, "time.csv"),
                         time_list,
                         delimiter=",",
-                        fmt='%.6f',
+                        fmt="%.6f",
                     )
                     np.savetxt(
                         os.path.join(save_path, "joint_angles.csv"),
                         joint_angles_list,
                         delimiter=",",
-                        fmt='%.6f',
+                        fmt="%.6f",
                     )
                     np.savetxt(
                         os.path.join(save_path, "joint_velocities.csv"),
                         joint_velocities_list,
                         delimiter=",",
-                        fmt='%.6f',
+                        fmt="%.6f",
                     )
                     np.savetxt(
                         os.path.join(save_path, "tcp_pose.csv"),
                         tcp_pose_list,
                         delimiter=",",
-                        fmt='%.6f',
+                        fmt="%.6f",
                     )
                     np.savetxt(
-                         os.path.join(save_path, "color_extrinsics.csv"),
-                         color_extrinsics_list,
-                         delimiter=",",
-                         fmt='%.6f',
+                        os.path.join(save_path, "color_position.csv"),
+                        color_position_list,
+                        delimiter=",",
+                        fmt="%.6f",
                     )
                     print(f"Data saved to {save_path}")
                     time_list = []
                     joint_angles_list = []
                     joint_velocities_list = []
                     tcp_pose_list = []
-                    color_extrinsics_list = []
+                    color_position_list = []
                     count = 0
 
     def log(
@@ -288,14 +260,14 @@ class RobotVis:
         joint_velocities_list,
         tcp_pose_list,
         color_image_list,
-        color_extrinsics_list,
+        color_position_list,
         entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]],
     ):
         color_intrinsics = {
             cam: cam_intr_to_mat(self.cam_dict[cam]["color_intrinsics"])
             for cam in self.cam_dict.keys()
         }
-        
+
         start_time = time.time()
         frame = 0
         while True:
@@ -303,15 +275,15 @@ class RobotVis:
                 self.log_robot_states(joint_angles_list[frame], entity_to_transform)
                 self.log_camera(
                     color_imgs={cam: color_image_list[frame] for cam in self.cam_dict},
-                    color_extrinsics={
-                        cam: color_extrinsics_list[frame] for cam in self.cam_dict
+                    color_position={
+                        cam: color_position_list[frame] for cam in self.cam_dict
                     },
                     color_intrinsics=color_intrinsics,
-                    depth_imgs={cam: None for cam in self.cam_dict},
-                    depth_extrinsics={cam: None for cam in self.cam_dict},
-                    depth_intrinsics={cam: None for cam in self.cam_dict},
                 )
-                self.log_action_dict(tcp_pose=tcp_pose_list[frame], joint_velocities=joint_velocities_list[frame])
+                self.log_action_dict(
+                    tcp_pose=tcp_pose_list[frame],
+                    joint_velocities=joint_velocities_list[frame],
+                )
 
                 frame += 1
 
@@ -371,18 +343,27 @@ def rerun_log(
     cam_dict: dict,
     robot_urdf: str,
     data_path: str,
-):  
+):
     print("Logging Data...")
     time_list = np.loadtxt(os.path.join(data_path, "time.csv"), delimiter=",")
-    joint_angles_list = np.loadtxt(os.path.join(data_path, "joint_angles.csv"), delimiter=",")
-    joint_velocities_list = np.loadtxt(os.path.join(data_path, "joint_velocities.csv"), delimiter=",")
+    joint_angles_list = np.loadtxt(
+        os.path.join(data_path, "joint_angles.csv"), delimiter=","
+    )
+    joint_velocities_list = np.loadtxt(
+        os.path.join(data_path, "joint_velocities.csv"), delimiter=","
+    )
     tcp_pose_list = np.loadtxt(os.path.join(data_path, "tcp_pose.csv"), delimiter=",")
     color_image_path = os.path.join(data_path, "color_img")
     color_image_list = [
-        cv2.cvtColor(cv2.imread(os.path.join(color_image_path, f"frame_{i}.png")), cv2.COLOR_BGR2RGB)
+        cv2.cvtColor(
+            cv2.imread(os.path.join(color_image_path, f"frame_{i}.png")),
+            cv2.COLOR_BGR2RGB,
+        )
         for i in range(joint_angles_list.shape[0])
     ]
-    color_extrinsics_list = np.loadtxt(os.path.join(data_path, "color_extrinsics.csv"), delimiter=",")
+    color_position_list = np.loadtxt(
+        os.path.join(data_path, "color_position.csv"), delimiter=","
+    )
 
     urdf_logger = URDFLogger(filepath=robot_urdf)
     robot_vis = RobotVis(cam_dict=cam_dict)
@@ -399,9 +380,10 @@ def rerun_log(
         joint_velocities_list=joint_velocities_list,
         tcp_pose_list=tcp_pose_list,
         color_image_list=color_image_list,
-        color_extrinsics_list=color_extrinsics_list,
-        entity_to_transform=urdf_logger.entity_to_transform
+        color_position_list=color_position_list,
+        entity_to_transform=urdf_logger.entity_to_transform,
     )
+
 
 def rerun_server(
     record_state,
@@ -522,7 +504,7 @@ def main(
     web_process.daemon = True
     web_process.start()
     webbrowser.open(f"http://{bind}:{port}")
-    
+
     stop_listener = keyboard.Listener(on_press=on_press)
     stop_listener.daemon = True
     stop_listener.start()
@@ -548,14 +530,16 @@ def main(
         )
         rerun_process.daemon = True
         rerun_process.start()
-    
+
         global stop_flag
         while True:
             if stop_flag and record_state.value == 0:
                 return
     else:
         data_path = os.path.join("../data/", data_folder)
-        rerun_log(cam_dict=cam_dict, robot_urdf=robot_urdf_dict[robot], data_path=data_path)
+        rerun_log(
+            cam_dict=cam_dict, robot_urdf=robot_urdf_dict[robot], data_path=data_path
+        )
 
 
 if __name__ == "__main__":
