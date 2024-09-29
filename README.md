@@ -1,6 +1,6 @@
 # Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
-[[Report Page]](https://msvc-dlrg.github.io) | [[Video]]() | [[Data]](https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing)
+[[Report Page]](https://msvc-dlrg.github.io) | [[Video]](https://youtu.be/6FlQ3zCi53w) | [[Data]](https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing)
 
 ![Teaser Image](assets/images/teaser.jpg)
 
