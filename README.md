@@ -45,7 +45,7 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
-An interface is provided in `interface/`, including 3D scene and curves, to visualize and record the robot data. You can also set the order of robot actions. To open the interface, run:
+An interface is provided in `./interface/`, including 3D scene and curves, to visualize and record the robot data. You can also set the order of robot actions. To open the interface, run:
 
 ```bash
 cd interface
@@ -54,12 +54,12 @@ python server.py
 
 The interface will be available at `http://127.0.0.1:8000`.
 
-To run the tasks in normal order, first go to ./motion, and run:
+To run the tasks in normal order, first go to `./motion/`, and run:
 ```bash
 python scripts/execute_task.py
 ```
 
-You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in ./motion/tasks.
+You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in `./motion/tasks/`.
 
 ## Data Availability
 
@@ -69,7 +69,7 @@ The data recorded during trials is available at [Google Drive](https://drive.goo
 - [x] Trajectories of UR10e's tool center point (TCP)
 - [x] Images captured by Intel Realsense D435i camera
 
-All data is recorded at 30 Hz, and you can place it into `data/` folder, and run the following code to visualize:
+All data is recorded at 10 Hz, and you can place it into `data/` folder, and run the following code to visualize:
 
 ```bash
 cd interface
