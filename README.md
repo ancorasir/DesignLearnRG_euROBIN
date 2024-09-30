@@ -92,7 +92,7 @@ cd interface
 python server.py
 ```
 
-The interface will be available at `http://127.0.0.1:8000`.
+The interface will be available at `127.0.0.1:8000`.
 
 ## Data Availability
 
@@ -109,7 +109,7 @@ cd interface
 python server.py -m log-data -d {DATA FOLDER NAME}
 ```
 
-`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `./data/20240928-162531/`, `{DATA FOLDER NAME}` should be `20240928-162531`. After running the code, you can view the data at `http://127.0.0.1:8000`.
+`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `./data/20240928-162531/`, `{DATA FOLDER NAME}` should be `20240928-162531`. After running the code, you can view the data at `127.0.0.1:8000`.
 
 ## License
 
