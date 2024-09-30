@@ -35,9 +35,12 @@ And there is also the [task board](docs/task_board.pdf) and the [Hikvision NP-Y1
 The repository is developed with C++ and Python, and tested on Ubuntu 20.04 with the following dependencies:
 
 - [Intel RealSense SDK 2.0](https://www.intelrealsense.com/sdk-2/)
-- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
+- [ONNX Runtime](https://onnxruntime.ai/)
+- [OpenCV](https://opencv.org/)
+- [Protocol Buffers](https://github.com/protocolbuffers/protobuf)
 - [Real-time Data Exchange (RTDE)](https://www.universal-robots.com/articles/ur/interface-communication/real-time-data-exchange-rtde-guide/)
 - [Rerun](https://rerun.io/)
+- [Ultralytics YOLOv8](https://www.ultralytics.com/yolo)
 
 ## Quick Start
 
