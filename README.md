@@ -1,7 +1,7 @@
 # Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
 <div align="center">
-    <a href="https://msvc-dlrg.github.io">[Report Page]</a> | <a href="https://youtu.be/6FlQ3zCi53w">[Video]</a> | <a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a>
+    <b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
     <p>
     Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song*<br />
     <a href="https://bionicdl.ancorasir.com">Design & Learning Research Group</a><br />
