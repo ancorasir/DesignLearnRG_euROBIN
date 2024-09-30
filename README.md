@@ -56,7 +56,7 @@ cd vision
 mkdir build
 cd build
 cmake ..
-make
+cmake --build .
 ./main
 ```
 
