@@ -23,7 +23,7 @@ And there is also the [task board](docs/task_board.pdf) and the [Hikvision NP-Y1
 
 ## Software Dependencies
 
-The code is developed with Python, and tested on Ubuntu 20.04 with the following dependencies:
+The repository is developed with C++ and Python, and tested on Ubuntu 20.04 with the following dependencies:
 
 - [Real-time Data Exchange (RTDE)](https://www.universal-robots.com/articles/ur/interface-communication/real-time-data-exchange-rtde-guide/)
 - [Intel RealSense SDK 2.0](https://www.intelrealsense.com/sdk-2/)
@@ -39,14 +39,16 @@ git clone https://github.com/ancorasir/DesignLearnRG_euROBIN.git
 cd DesignLearnRG_euROBIN
 ```
 
-Then, install the dependencies:
+Then, install the Python dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-To run the tasks in normal order, first go to `./motion/`, and run:
+The code for robot motion is provided in `./motion/`. To run the tasks in normal order, run:
+
 ```bash
+cd motion
 python scripts/execute_task.py
 ```
 

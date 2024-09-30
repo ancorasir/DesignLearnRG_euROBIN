@@ -6,7 +6,6 @@ pillow==10.4.0
 protobuf==5.28.2
 pycollada==0.8
 pynput==1.7.7
-pyrealsense2==2.55.1.6486
 pyyaml==6.0.2
 pyzmq==26.2.0
 rerun-sdk==0.18.2
