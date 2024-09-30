@@ -71,7 +71,7 @@ class RobotSubscriber:
             cv2.imdecode(np.frombuffer(robot.color_image, np.uint8), cv2.IMREAD_COLOR),
             cv2.COLOR_BGR2RGB,
         )
-        self.color_position = np.array(robot.color_position).flatten()
+        self.color_position = np.array(robot.color_extrinsics).flatten()
 
 
 class SkillPublisher:
