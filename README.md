@@ -45,6 +45,25 @@ Then, install the Python dependencies:
 pip install -r requirements.txt
 ```
 
+There are three main components in the repository: vision detection, robot motion, and user interface. You need to run them together to complete the task.
+
+### Vision Detection
+
+To detect the task board and screen on it, a vision detector is provided in `./vision/`. To run the vision detector, run:
+
+```bash
+cd vision
+mkdir build
+cd build
+cmake ..
+make
+./main
+```
+
+The vision detector will output the detected objects' positions and orientations in the robot base frame.
+
+### Robot Motion
+
 The code for robot motion is provided in `./motion/`. To run the tasks in normal order, run:
 
 ```bash
@@ -53,6 +72,9 @@ python scripts/execute_task.py
 ```
 
 You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in `./motion/tasks/`.
+
+
+### User Interface
 
 An interface is provided in `./interface/`, including 3D scene and curves, to visualize and record the robot data. You can also set the order of robot actions. To open the interface, run:
 
