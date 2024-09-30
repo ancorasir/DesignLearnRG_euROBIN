@@ -535,11 +535,13 @@ def main(
         while True:
             if stop_flag and record_state.value == 0:
                 return
-    else:
+    elif mode == "log-data":
         data_path = os.path.join("../data/", data_folder)
         rerun_log(
             cam_dict=cam_dict, robot_urdf=robot_urdf_dict[robot], data_path=data_path
         )
+    else:
+        raise ValueError("\033[91mINVALID MODE\033[0m")
 
 
 if __name__ == "__main__":

@@ -93,14 +93,14 @@ The data recorded during trials is available at [Google Drive](https://drive.goo
 - [x] Trajectories of UR10e's tool center point (TCP)
 - [x] Images captured by Intel Realsense D435i camera
 
-All data is recorded at 10 Hz, and you can place it into `data/` folder, and run the following code to visualize:
+All data is recorded at 10 Hz, and you can place it into `./data/` folder, and run the following code to visualize:
 
 ```bash
 cd interface
 python server.py -m log-data -d {DATA FOLDER NAME}
 ```
 
-`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `data/20240928-162531/`, `{DATA FOLDER NAME}` should be `20240928-162531`. After running the code, you can view the data at `http://127.0.0.1:8000`.
+`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `./data/20240928-162531/`, `{DATA FOLDER NAME}` should be `20240928-162531`. After running the code, you can view the data at `http://127.0.0.1:8000`.
 
 ## License
 
