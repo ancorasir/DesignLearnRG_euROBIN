@@ -98,9 +98,9 @@ The interface will be available at `http://127.0.0.1:8000`.
 
 The data recorded during trials is available at [Google Drive](https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing), which includes:
 
-- [x] Positions and velocities of UR10e's joints
-- [x] Trajectories of UR10e's tool center point (TCP)
-- [x] Images captured by Intel Realsense D435i camera
+- Positions and velocities of UR10e's joints
+- Trajectories of UR10e's tool center point (TCP)
+- Images captured by Intel Realsense D435i camera
 
 All data is recorded at 10 Hz, and you can place it into `./data/` folder, and run the following code to visualize:
 
