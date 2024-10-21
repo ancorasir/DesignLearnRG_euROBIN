@@ -1,6 +1,9 @@
 # Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
 <div align="center">
+    <b> Fastest Task Board Solution Award
+    </b>
+    <br />
     <b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
     <br /><br />
     <p>
@@ -112,7 +115,7 @@ cd interface
 python server.py -m log-data -d {DATA FOLDER NAME}
 ```
 
-`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `./data/20240928-162531/`, `{DATA FOLDER NAME}` should be `20240928-162531`. After running the code, you can view the data at `127.0.0.1:8000`.
+`{DATA FOLDER NAME}` is the folder name formatted with the time at which data recording started. For example, if you want to view the data in `./data/20240929-054829/`, `{DATA FOLDER NAME}` should be `20240929-054829`. After running the code, you can view the data at `127.0.0.1:8000`.
 
 ## License
 
