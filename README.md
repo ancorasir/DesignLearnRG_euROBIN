@@ -1,4 +1,4 @@
-# Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
+# Design & Learning Research Group Solution - euROBIN MSVC @ IROS 2024
 
 <div align="center">
     <b> Fastest Automated Task Board Solution Award
