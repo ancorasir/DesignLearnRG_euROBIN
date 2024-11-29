@@ -6,7 +6,7 @@
 <b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
 <br /><br />
 <p>
-Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song*
+Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song
 <br />
 <a href="https://bionicdl.ancorasir.com">Design & Learning Research Group</a><br />
 <a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>
