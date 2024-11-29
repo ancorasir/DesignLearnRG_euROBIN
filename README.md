@@ -1,17 +1,22 @@
 # Design & Learning Research Group Submission - euROBIN MSVC @ IROS 2024
 
 <div align="center">
-    <b> Fastest Automated Task Board Solution Award
-    </b>
-    <br />
-    <b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
-    <br /><br />
-    <p>
-    Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song*<br />
-    <a href="https://bionicdl.ancorasir.com">Design & Learning Research Group</a><br />
-    <a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>
-    </p>
-    <br />
+<b> Fastest Automated Task Board Solution Award</b>
+<br />
+<b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
+<br /><br />
+<p>
+Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song*
+<br />
+<a href="https://bionicdl.ancorasir.com">Design & Learning Research Group</a><br />
+<a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>
+</p>
+<br />
+<!-- <picture>
+<source media="(prefers-color-scheme: dark)" srcset="./images/logo/sustech_dark.png">
+<source media="(prefers-color-scheme: light)" srcset="./images/logo/sustech_light.png">
+<img src="./images/logo/sustech_light.png" width="250px" alt="logo">
+</picture> -->
 </div>
 
 ![Teaser Image](assets/images/teaser.jpg)
@@ -87,7 +92,6 @@ python scripts/execute_task.py
 ```
 
 You can also modify the order of the tasks, changing the order of the task execution function. To modify the motions for a specific task, you can edit the task files in `./motion/tasks/`.
-
 
 ### User Interface
 
