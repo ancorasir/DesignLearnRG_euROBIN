@@ -3,7 +3,7 @@
 <div align="center">
 <b> Fastest Automated Task Board Solution Award</b>
 <br />
-<b><a href="https://msvc-dlrg.github.io">[Report Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
+<b><a href="https://msvc-dlrg.github.io">[Project Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
 <br /><br />
 <p>
 Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song
