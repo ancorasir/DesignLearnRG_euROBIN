@@ -5,3 +5,5 @@ data/
 motion/__pycache__/
 motion/message/__pycache__/
 motion/tasks/__pycache__/
+
+*.ipynb
