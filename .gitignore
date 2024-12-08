@@ -6,8 +6,5 @@ motion/__pycache__/
 motion/message/__pycache__/
 motion/tasks/__pycache__/
 
-<<<<<<< HEAD
-=======
 .vscode/
->>>>>>> e843676 (	modified:   .gitignore)
 *.ipynb
