@@ -25,23 +25,19 @@
  * Blue-Button
  */
 
-
 class YOLO_V8;
 
 class TaskboardDetector
 {
 public:
-
     TaskboardDetector(const std::string model_path /*= RESOURCE_PATH_STR"best.onnx"*/,
-                       const std::string class_yaml_path /*= RESOURCE_PATH_STR"taskboard.yaml"*/);
-
+                      const std::string class_yaml_path /*= RESOURCE_PATH_STR"taskboard.yaml"*/);
 
     void detect(const cv::Mat &input,
-                     cv::Mat &output ,
-                     std::vector<cv::Point2d>& observed_points);
+                cv::Mat &output,
+                std::vector<cv::Point2d> &observed_points);
 
 private:
-
     void readClassYaml();
 
     std::string modelPath_;

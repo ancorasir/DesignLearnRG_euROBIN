@@ -6,7 +6,7 @@ using namespace cv;
 
 TriangleDetector::TriangleDetector(const std::string model_path)
     : modelPath_(model_path),
-    yoloDetector_(new YOLO_V8)
+      yoloDetector_(new YOLO_V8)
 {
     yoloDetector_->classes = {"screen"};
 
@@ -14,7 +14,7 @@ TriangleDetector::TriangleDetector(const std::string model_path)
     params.rectConfidenceThreshold = 0.2;
     params.iouThreshold = 0.5;
     params.modelPath = modelPath_;
-    params.imgSize = { 640, 640 };
+    params.imgSize = {640, 640};
 
 #ifdef USE_CUDA
     params.cudaEnable = true;
@@ -22,8 +22,8 @@ TriangleDetector::TriangleDetector(const std::string model_path)
     // GPU FP32 inference
     params.modelType = YOLO_DETECT_V8;
     // GPU FP16 inference
-    //Note: change fp16 onnx model
-    //params.modelType = YOLO_DETECT_V8_HALF;
+    // Note: change fp16 onnx model
+    // params.modelType = YOLO_DETECT_V8_HALF;
 
 #else
     // CPU inference
@@ -43,7 +43,7 @@ void TriangleDetector::detect(const cv::Mat &input,
     std::vector<DL_RESULT> res;
     yoloDetector_->RunSession(output, res);
 
-    for (auto& re : res)
+    for (auto &re : res)
     {
         cv::RNG rng(cv::getTickCount());
         cv::Scalar color(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
@@ -62,17 +62,13 @@ void TriangleDetector::detect(const cv::Mat &input,
             cv::FONT_HERSHEY_SIMPLEX,
             0.75,
             cv::Scalar(0, 0, 0),
-            2
-            );
+            2);
 
-        pixel_distance = computePixelDistance(input , re.box);
-
+        pixel_distance = computePixelDistance(input, re.box);
     }
-
 }
 
-
-int TriangleDetector::computePixelDistance(const cv::Mat& src , const cv::Rect &roi)
+int TriangleDetector::computePixelDistance(const cv::Mat &src, const cv::Rect &roi)
 {
     // Create a mask for the ROI
     cv::Mat roiMask = cv::Mat::zeros(src.size(), CV_8UC1);
@@ -85,8 +81,7 @@ int TriangleDetector::computePixelDistance(const cv::Mat& src , const cv::Rect &
     // Create a mask for the ROI
     cv::Mat hsvROI;
     src.copyTo(hsvROI, roiMask); // Copy only the ROI area
-    hsvROI = hsv(roi); // Get the HSV of the ROI area
-
+    hsvROI = hsv(roi);           // Get the HSV of the ROI area
 
     // Define color ranges for red, green, and yellow
     // Red (two ranges)
@@ -115,15 +110,15 @@ int TriangleDetector::computePixelDistance(const cv::Mat& src , const cv::Rect &
         vector<vector<cv::Point>> contoursGreen;
         findContours(maskGreen, contoursGreen, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        if(contoursGreen.size())
+        if (contoursGreen.size())
         {
             // Sort contours based on area
-            sort(contoursGreen.begin(), contoursGreen.end(), [](const vector<Point>& a, const vector<Point>& b) {
-                return contourArea(a) > contourArea(b);
-            });
+            sort(contoursGreen.begin(), contoursGreen.end(), [](const vector<Point> &a, const vector<Point> &b)
+                 { return contourArea(a) > contourArea(b); });
 
             Moments m = moments(contoursGreen.front());
-            if (m.m00 != 0) { // Avoid division by zero
+            if (m.m00 != 0)
+            {                                                   // Avoid division by zero
                 Point2f centroid(m.m10 / m.m00, m.m01 / m.m00); // Calculate centroid
                 u_green = centroid.x;
             }
@@ -135,20 +130,19 @@ int TriangleDetector::computePixelDistance(const cv::Mat& src , const cv::Rect &
         vector<vector<Point>> contoursRed;
         findContours(maskRed, contoursRed, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        if(contoursRed.size())
+        if (contoursRed.size())
         {
             // Sort contours based on area
-            sort(contoursRed.begin(), contoursRed.end(), [](const vector<Point>& a, const vector<Point>& b) {
-                return contourArea(a) > contourArea(b);
-            });
+            sort(contoursRed.begin(), contoursRed.end(), [](const vector<Point> &a, const vector<Point> &b)
+                 { return contourArea(a) > contourArea(b); });
 
             Moments m = moments(contoursRed.front());
-            if (m.m00 != 0) { // Avoid division by zero
+            if (m.m00 != 0)
+            {                                                   // Avoid division by zero
                 Point2f centroid(m.m10 / m.m00, m.m01 / m.m00); // Calculate centroid
                 u_red = centroid.x;
             }
         }
-
     }
 
     return u_green - u_red;

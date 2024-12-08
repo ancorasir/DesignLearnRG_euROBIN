@@ -1,42 +1,44 @@
 from tasks.base_task import Task
 from copy import deepcopy
 import numpy as np
-from message import detection_pb2  # Import the generated code from the .proto file  
+from message import detection_pb2
+
 
 class MoveSlider(Task):
     def __init__(
-            self, 
-            rtde_rec, 
-            rtde_ctrl, 
-            gripper_ctrl, 
-            taskboard_pose_in_world, 
-            default_tcp_rot_mat_in_board=None,
-            socket=None
-        ) -> None:
+        self,
+        rtde_rec,
+        rtde_ctrl,
+        gripper_ctrl,
+        taskboard_pose_in_world,
+        default_tcp_rot_mat_in_board=None,
+        socket=None,
+    ) -> None:
 
         super().__init__(
-            rtde_rec=rtde_rec, 
-            rtde_ctrl=rtde_ctrl, 
-            gripper_ctrl=gripper_ctrl, 
-            task_motions=None, 
-            taskboard_pose_in_world=taskboard_pose_in_world, 
-            default_tcp_rot_mat_in_board=default_tcp_rot_mat_in_board)
+            rtde_rec=rtde_rec,
+            rtde_ctrl=rtde_ctrl,
+            gripper_ctrl=gripper_ctrl,
+            task_motions=None,
+            taskboard_pose_in_world=taskboard_pose_in_world,
+            default_tcp_rot_mat_in_board=default_tcp_rot_mat_in_board,
+        )
 
         self.__slider_pos_in_taskboard = [0.0369, 0.095, 0.0]
-        self.__slider_z_in_board = 0.003 # 0.105 for real testing
-        self.__ready_to_grip_z_in_board = 0.004 # 0.115 for real testing
-        self.__z_rot = np.pi/2.0 # No need to change orientation
-        self.gripper_pos = 255 # Always close the gripper
+        self.__slider_z_in_board = 0.003  # 0.105 for real testing
+        self.__ready_to_grip_z_in_board = 0.004  # 0.115 for real testing
+        self.__z_rot = np.pi / 2.0  # No need to change orientation
+        self.gripper_pos = 255  # Always close the gripper
         self.socket = socket
 
         pre_garsp_pos = deepcopy(self.__slider_pos_in_taskboard)
-        pre_garsp_pos[2] += 0.02 # 10 cm above the red button
+        pre_garsp_pos[2] += 0.02  # 10 cm above the red button
         self.pre_grasp_pose = {
             "pos": pre_garsp_pos,
             "z_rot": self.__z_rot,
-            "gripper_pos": 150, # Open the gripper
+            "gripper_pos": 150,  # Open the gripper
             "vel": 2.0,
-            "acc": 4.0
+            "acc": 4.0,
         }
 
         ready_to_grip_slider_pos = deepcopy(self.__slider_pos_in_taskboard)
@@ -44,17 +46,17 @@ class MoveSlider(Task):
         self.ready_to_grip_slider_pose = {
             "pos": ready_to_grip_slider_pos,
             "z_rot": self.__z_rot,
-            "gripper_pos": 150, # Open the gripper
+            "gripper_pos": 150,  # Open the gripper
             "vel": 2.0,
-            "acc": 4.0
+            "acc": 4.0,
         }
 
         self.grip_slider_pose = {
             "pos": ready_to_grip_slider_pos,
             "z_rot": self.__z_rot,
-            "gripper_pos": 160, # Close the gripper
+            "gripper_pos": 160,  # Close the gripper
             "vel": 0.6,
-            "acc": 1.5
+            "acc": 1.5,
         }
 
         self.slide_to_center_pose = deepcopy(self.grip_slider_pose)
@@ -76,16 +78,16 @@ class MoveSlider(Task):
         import time
 
         # TODO: servo the tcp to move in y direction
-        # Send a message  
-        message = "direction" 
-        self.socket.send_string(message)  
+        # Send a message
+        message = "direction"
+        self.socket.send_string(message)
         print(f"Sent: {message}")
 
         time.sleep(1.0)
 
         reply = self.socket.recv()
-        vision_message = detection_pb2.Vision()  
-        vision_message.ParseFromString(reply)  # Parse the incoming bytes  
+        vision_message = detection_pb2.Vision()
+        vision_message.ParseFromString(reply)  # Parse the incoming bytes
         direction = vision_message.direction
         print(direction)
 
@@ -106,9 +108,8 @@ class MoveSlider(Task):
 
         # Open the gripper
         self.ready_to_grip_slider_pose["pos"] = release_gripper_pose["pos"]
-        self.ready_to_grip_slider_pose["pos"][2] += 0.03 
+        self.ready_to_grip_slider_pose["pos"][2] += 0.03
         self.go_to_pose(self.ready_to_grip_slider_pose)
 
         # Return back to the pre grasp pose
         # self.go_to_pose(self.pre_grasp_pose)
-

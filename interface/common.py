@@ -68,7 +68,9 @@ def extract_extrinsics(pose: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return (translation, rotation)
 
 
-def path_to_link(link: int, entity_to_transform:dict[str, tuple[np.ndarray, np.ndarray]]) -> str:
+def path_to_link(
+    link: int, entity_to_transform: dict[str, tuple[np.ndarray, np.ndarray]]
+) -> str:
     entity_path = list(entity_to_transform.keys())[link]
     return entity_path
     # return "/".join(f"link{i}" for i in range(link + 1))
@@ -114,6 +116,9 @@ def h5_tree(val, pre=""):
             else:
                 print(pre + "├── " + key + " (%d)" % len(val))
 
+
 def cam_intr_to_mat(intrinsic: np.ndarray) -> np.ndarray:
     """Converts an intrinsic camera matrix to a 3x3 matrix"""
-    return np.array([[intrinsic[0], 0, intrinsic[2]], [0, intrinsic[1], intrinsic[3]], [0, 0, 1]])
+    return np.array(
+        [[intrinsic[0], 0, intrinsic[2]], [0, intrinsic[1], intrinsic[3]], [0, 0, 1]]
+    )

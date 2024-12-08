@@ -38,14 +38,14 @@ struct RobotData
         camera_pose_.push_back(eigen_t_vec.x());
         camera_pose_.push_back(eigen_t_vec.y());
         camera_pose_.push_back(eigen_t_vec.z());
-        camera_pose_.push_back(eigen_r_vec.angle()*eigen_r_vec.axis().x());
-        camera_pose_.push_back(eigen_r_vec.angle()*eigen_r_vec.axis().y());
-        camera_pose_.push_back(eigen_r_vec.angle()*eigen_r_vec.axis().z());
+        camera_pose_.push_back(eigen_r_vec.angle() * eigen_r_vec.axis().x());
+        camera_pose_.push_back(eigen_r_vec.angle() * eigen_r_vec.axis().y());
+        camera_pose_.push_back(eigen_r_vec.angle() * eigen_r_vec.axis().z());
 
         cMw = wMc.inverse();
     }
 
-    void updateData(const RobotData& tmp_data)
+    void updateData(const RobotData &tmp_data)
     {
         joint_positions_ = tmp_data.joint_positions_;
         joint_velocities_ = tmp_data.joint_velocities_;
@@ -54,8 +54,6 @@ struct RobotData
         eMc = tmp_data.eMc;
         cMw = tmp_data.cMw;
     }
-
-
 };
 
 enum Detection
@@ -64,7 +62,8 @@ enum Detection
     Triangle = 1,
 };
 
-class DataRelayApp {
+class DataRelayApp
+{
 public:
     DataRelayApp();
 
@@ -86,8 +85,8 @@ private:
 
     // For TASKBOARD
     const int numSamples = 20; // Number of samples to average
-    int sampleCounter = 0; // Counter to track collected samples
-    bool collecting = false; // Flag to indicate if we are currently collecting samples
+    int sampleCounter = 0;     // Counter to track collected samples
+    bool collecting = false;   // Flag to indicate if we are currently collecting samples
     Detection detectMode = Detection::TaskBoard;
 
     // For Slider Triangle
@@ -99,20 +98,19 @@ private:
     void getRobotData();
     void publishData();
     void handleRequests();
-    std::string serializeImage(const cv::Mat& image);
+    std::string serializeImage(const cv::Mat &image);
     void loadExtrinsic();
-    robot::Robot convertToRobotMessage(const RobotData& robot, const cv::Mat& img);
-    void calculateAvgPixelCord(const std::vector<cv::Point2d>& imagePoints,
-                               cv::Point2d& avgImagePoint);
-    int mostFrequent(const std::vector<int>& nums);
+    robot::Robot convertToRobotMessage(const RobotData &robot, const cv::Mat &img);
+    void calculateAvgPixelCord(const std::vector<cv::Point2d> &imagePoints,
+                               cv::Point2d &avgImagePoint);
+    int mostFrequent(const std::vector<int> &nums);
 
-    std::string intrinsic_file {RESOURCE_PATH_STR"ur_camera.yaml"};
+    std::string intrinsic_file{RESOURCE_PATH_STR "ur_camera.yaml"};
     std::string robot_ip = "192.168.1.102";
-    std::string model_path {RESOURCE_PATH_STR"best_taskboard.onnx"};
-    std::string model_path_sceen {RESOURCE_PATH_STR"best_screen.onnx"};
-    std::string class_yaml_path{RESOURCE_PATH_STR"taskboard.yaml"};
-    std::string extrinsic_file {RESOURCE_PATH_STR"eMc.yaml"};
-    std::string model_point_file {RESOURCE_PATH_STR"model_data.yaml"};
-
+    std::string model_path{RESOURCE_PATH_STR "best_taskboard.onnx"};
+    std::string model_path_sceen{RESOURCE_PATH_STR "best_screen.onnx"};
+    std::string class_yaml_path{RESOURCE_PATH_STR "taskboard.yaml"};
+    std::string extrinsic_file{RESOURCE_PATH_STR "eMc.yaml"};
+    std::string model_point_file{RESOURCE_PATH_STR "model_data.yaml"};
 };
 #endif // DATARELAY_H

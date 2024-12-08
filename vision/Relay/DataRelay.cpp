@@ -9,8 +9,9 @@
 
 DataRelayApp::DataRelayApp()
     : context(1),
-    publisher(context, ZMQ_PUB),
-    requestServer(context, ZMQ_REP) {
+      publisher(context, ZMQ_PUB),
+      requestServer(context, ZMQ_REP)
+{
 
     publisher.bind("tcp://*:5555");
     requestServer.bind("tcp://*:5556");
@@ -19,7 +20,8 @@ DataRelayApp::DataRelayApp()
     robotData.eMc = eMc;
 }
 
-void DataRelayApp::run() {
+void DataRelayApp::run()
+{
     std::thread imageThread(&DataRelayApp::captureImages, this);
     std::thread robotThread(&DataRelayApp::getRobotData, this);
     std::thread publisherThread(&DataRelayApp::publishData, this);
@@ -31,7 +33,8 @@ void DataRelayApp::run() {
     requestThread.join();
 }
 
-void DataRelayApp::captureImages() {
+void DataRelayApp::captureImages()
+{
 
     rs2::pipeline pipeline;
     rs2::config cfg;
@@ -41,14 +44,15 @@ void DataRelayApp::captureImages() {
     TaskboardDetector taskboard_detector(model_path, class_yaml_path);
     TriangleDetector triangle_detector(model_path_sceen);
 
-    while (true) {
+    while (true)
+    {
 
         rs2::frameset frames = pipeline.wait_for_frames();
         rs2::frame colorFrame = frames.get_color_frame();
         // Convert to cv::Mat
         const int w = colorFrame.as<rs2::video_frame>().get_width();
         const int h = colorFrame.as<rs2::video_frame>().get_height();
-        cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)colorFrame.get_data(), cv::Mat::AUTO_STEP);
+        cv::Mat image(cv::Size(w, h), CV_8UC3, (void *)colorFrame.get_data(), cv::Mat::AUTO_STEP);
 
         Detection mode;
         {
@@ -56,7 +60,7 @@ void DataRelayApp::captureImages() {
             mode = detectMode;
         }
 
-        if(mode == Detection::TaskBoard)
+        if (mode == Detection::TaskBoard)
         {
             // Detect keypoints
             cv::Mat imageOut;
@@ -69,7 +73,7 @@ void DataRelayApp::captureImages() {
             }
         }
 
-        if(mode == Detection::Triangle)
+        if (mode == Detection::Triangle)
         {
             cv::Mat imageOut;
             int pixel_dis;
@@ -86,17 +90,19 @@ void DataRelayApp::captureImages() {
     }
 }
 
-void DataRelayApp::getRobotData() {
+void DataRelayApp::getRobotData()
+{
     // Initialize UR RTDE and continuously retrieve robot data
     // Update robotData with current robot state
     ur_rtde::RTDEReceiveInterface rtde_receive(robot_ip);
-    while (true) {
+    while (true)
+    {
 
         RobotData tmp_data;
 
         // For demonstration purposes; update with real data
         tmp_data.eMc = eMc;
-        tmp_data.joint_positions_= rtde_receive.getActualQ();
+        tmp_data.joint_positions_ = rtde_receive.getActualQ();
         tmp_data.tcp_pose_ = rtde_receive.getActualTCPPose();
         tmp_data.joint_velocities_ = rtde_receive.getActualQd();
         tmp_data.getHomogeneousMatrix();
@@ -110,11 +116,13 @@ void DataRelayApp::getRobotData() {
     }
 }
 
-void DataRelayApp::publishData() {
+void DataRelayApp::publishData()
+{
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    while (true) {
+    while (true)
+    {
 
         RobotData tmp_data;
         cv::Mat tmp_img;
@@ -126,7 +134,7 @@ void DataRelayApp::publishData() {
         }
 
         // Convert and publish the data
-        robot::Robot robotMsg = convertToRobotMessage(tmp_data,tmp_img);
+        robot::Robot robotMsg = convertToRobotMessage(tmp_data, tmp_img);
         zmq::message_t message(robotMsg.ByteSize());
         robotMsg.SerializeToArray(message.data(), message.size());
         publisher.send(message, zmq::send_flags::none);
@@ -135,32 +143,36 @@ void DataRelayApp::publishData() {
     }
 }
 
-void DataRelayApp::handleRequests() {
+void DataRelayApp::handleRequests()
+{
 
     TaskboardPoseEstimator estimator(intrinsic_file, model_point_file);
 
-    while (true) {
+    while (true)
+    {
         zmq::message_t request;
         requestServer.recv(request, zmq::recv_flags::none);
 
-        if(request.to_string() == "pose")
+        if (request.to_string() == "pose")
         {
             // Start collecting keypoints if not already collecting
-            sampleCounter = 0; // Reset sample counter
-            bb_point_collections.clear();    // Clear the collected keypoints
+            sampleCounter = 0;            // Reset sample counter
+            bb_point_collections.clear(); // Clear the collected keypoints
             rb_point_collections.clear();
             rh_point_collections.clear();
-            std::vector<double> calculated_pose(6,0.);
+            std::vector<double> calculated_pose(6, 0.);
 
             // Collect keypoints for the specified number of samples
-            while (sampleCounter < numSamples) {
+            while (sampleCounter < numSamples)
+            {
                 // Wait for the next frame to be ready
                 std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust delay as necessary
 
                 // Lock the mutex to access the keypoints
                 {
                     std::lock_guard<std::mutex> lock(mtx);
-                    if (!keypoints.empty()) {
+                    if (!keypoints.empty())
+                    {
                         // Store a copy of the current keypoints
                         bb_point_collections.push_back(keypoints.at(0));
                         rb_point_collections.push_back(keypoints.at(1));
@@ -173,7 +185,8 @@ void DataRelayApp::handleRequests() {
             }
 
             // After collecting enough samples, calculate the average
-            if (sampleCounter >= numSamples) {
+            if (sampleCounter >= numSamples)
+            {
                 // Calculate average keypoints
                 // Now compute the average keypoints (placeholder logic)
                 std::vector<cv::Point2d> averaged_keypoints;
@@ -183,7 +196,7 @@ void DataRelayApp::handleRequests() {
                 calculateAvgPixelCord(rh_point_collections, averaged_keypoints.at(2));
 
                 Eigen::Affine3d cMw;
-                double init_x,init_y;
+                double init_x, init_y;
                 {
                     std::lock_guard<std::mutex> lock(mtx);
                     cMw = robotData.cMw;
@@ -201,12 +214,12 @@ void DataRelayApp::handleRequests() {
                 estimator.estimatePose(estimated_wMo_parameter);
 
                 // (x,y,z,rx,ry,rz)
-                calculated_pose[0] = estimated_wMo_parameter[0];  // x
-                calculated_pose[1] = estimated_wMo_parameter[1];  // y
-                calculated_pose[2] = 0.100;  // z
-                calculated_pose[3] = 0;  // rx
-                calculated_pose[4] = 0;  // ry
-                calculated_pose[5] = estimated_wMo_parameter[2];  // rz
+                calculated_pose[0] = estimated_wMo_parameter[0]; // x
+                calculated_pose[1] = estimated_wMo_parameter[1]; // y
+                calculated_pose[2] = 0.100;                      // z
+                calculated_pose[3] = 0;                          // rx
+                calculated_pose[4] = 0;                          // ry
+                calculated_pose[5] = estimated_wMo_parameter[2]; // rz
             }
             // Assuming some logic to determine the direction
 
@@ -216,14 +229,16 @@ void DataRelayApp::handleRequests() {
             // Create the response message
             detection::Vision res;
 
-            for (double value : calculated_pose) {
-                res.add_pose(value);  // Add each pose value to the response
+            for (double value : calculated_pose)
+            {
+                res.add_pose(value); // Add each pose value to the response
             }
             res.set_direction(pixel_dist);
 
             // Serialize the response message
             std::string response_string;
-            if (!res.SerializeToString(&response_string)) {
+            if (!res.SerializeToString(&response_string))
+            {
                 std::cerr << "Failed to serialize response." << std::endl;
                 success = false;
             }
@@ -235,7 +250,7 @@ void DataRelayApp::handleRequests() {
             requestServer.send(reply, zmq::send_flags::none);
         }
 
-        if(request.to_string() == "direction")
+        if (request.to_string() == "direction")
         {
             {
                 std::lock_guard<std::mutex> lock(mtx);
@@ -246,10 +261,11 @@ void DataRelayApp::handleRequests() {
             sampleCounter = 0; // Reset sample counter
             pixel_distance_collections.clear();
             int pixel_dist = 0;
-            std::vector<double> calculated_pose(6,0.);
+            std::vector<double> calculated_pose(6, 0.);
 
             // Collect keypoints for the specified number of samples
-            while (sampleCounter < numAverage) {
+            while (sampleCounter < numAverage)
+            {
                 // Wait for the next frame to be ready
                 std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust delay as necessary
 
@@ -263,10 +279,10 @@ void DataRelayApp::handleRequests() {
             }
 
             // After collecting enough samples, calculate the average
-            if (sampleCounter >= numAverage) {
+            if (sampleCounter >= numAverage)
+            {
                 // Calculate average pixel distance
                 pixel_dist = mostFrequent(pixel_distance_collections);
-
             }
             // Assuming some logic to determine the direction
 
@@ -275,15 +291,17 @@ void DataRelayApp::handleRequests() {
             // Create the response message
             detection::Vision res;
 
-            for (double value : calculated_pose) {
-                res.add_pose(value);  // Add each pose value to the response
+            for (double value : calculated_pose)
+            {
+                res.add_pose(value); // Add each pose value to the response
             }
 
             res.set_direction(pixel_dist);
 
             // Serialize the response message
             std::string response_string;
-            if (!res.SerializeToString(&response_string)) {
+            if (!res.SerializeToString(&response_string))
+            {
                 std::cerr << "Failed to serialize response." << std::endl;
                 success = false;
             }
@@ -298,12 +316,12 @@ void DataRelayApp::handleRequests() {
                 std::lock_guard<std::mutex> lock(mtx);
                 detectMode = Detection::TaskBoard;
             }
-
         }
     }
 }
 
-std::string DataRelayApp::serializeImage(const cv::Mat& image) {
+std::string DataRelayApp::serializeImage(const cv::Mat &image)
+{
     std::vector<uchar> buf;
     cv::imencode(".jpg", image, buf);
     return std::string(buf.begin(), buf.end());
@@ -314,7 +332,8 @@ void DataRelayApp::loadExtrinsic()
     cv::Mat mat;
     // Create a FileStorage object in READ mode
     cv::FileStorage fs(extrinsic_file, cv::FileStorage::READ);
-    if (!fs.isOpened()) {
+    if (!fs.isOpened())
+    {
         std::cerr << "Failed to open file for reading: " << extrinsic_file << std::endl;
         return; // Return an empty matrix
     }
@@ -325,8 +344,8 @@ void DataRelayApp::loadExtrinsic()
     // Release the FileStorage object
     fs.release();
 
-    Eigen::Vector3d t_vec(mat.at<double>(0,0),mat.at<double>(1,0),mat.at<double>(2,0));
-    Eigen::Vector3d r_vec(mat.at<double>(3,0),mat.at<double>(4,0),mat.at<double>(5,0));
+    Eigen::Vector3d t_vec(mat.at<double>(0, 0), mat.at<double>(1, 0), mat.at<double>(2, 0));
+    Eigen::Vector3d r_vec(mat.at<double>(3, 0), mat.at<double>(4, 0), mat.at<double>(5, 0));
 
     eMc.setIdentity();
     eMc.translate(t_vec).rotate(Eigen::AngleAxisd(r_vec.norm(), r_vec.normalized()));
@@ -337,19 +356,23 @@ robot::Robot DataRelayApp::convertToRobotMessage(const RobotData &robot, const c
     robot::Robot msg;
 
     // Add joint positions, velocities, and TCP pose
-    for (const auto& angle : robot.joint_positions_) {
+    for (const auto &angle : robot.joint_positions_)
+    {
         msg.add_joint_angles(angle);
     }
 
-    for (const auto& velocity : robot.joint_velocities_) {
+    for (const auto &velocity : robot.joint_velocities_)
+    {
         msg.add_joint_velocities(velocity);
     }
 
-    for (const auto& pose : robot.tcp_pose_) {
+    for (const auto &pose : robot.tcp_pose_)
+    {
         msg.add_tcp_pose(pose);
     }
 
-    for (const auto& pose : robot.camera_pose_) {
+    for (const auto &pose : robot.camera_pose_)
+    {
         msg.add_color_extrinsics(pose);
     }
 
@@ -361,16 +384,17 @@ robot::Robot DataRelayApp::convertToRobotMessage(const RobotData &robot, const c
 
 void DataRelayApp::calculateAvgPixelCord(const std::vector<cv::Point2d> &imagePoints, cv::Point2d &avgImagePoint)
 {
-    if(!imagePoints.size())
+    if (!imagePoints.size())
     {
-        std::cerr<<"detected center list is null!"<<std::endl;
-        return ;
+        std::cerr << "detected center list is null!" << std::endl;
+        return;
     }
 
     double sum_x = 0.0;
     double sum_y = 0.0;
 
-    for(const auto& point : imagePoints) {
+    for (const auto &point : imagePoints)
+    {
         sum_x += point.x;
         sum_y += point.y;
     }
@@ -379,22 +403,22 @@ void DataRelayApp::calculateAvgPixelCord(const std::vector<cv::Point2d> &imagePo
     double avg_y = sum_y / imagePoints.size();
 
     avgImagePoint = cv::Point2d(avg_x, avg_y);
-
 }
 
-
-
-int DataRelayApp::mostFrequent(const std::vector<int>& nums) {
+int DataRelayApp::mostFrequent(const std::vector<int> &nums)
+{
     std::unordered_map<int, int> countMap;
 
     // Count frequencies of each number
-    for (int num : nums) {
+    for (int num : nums)
+    {
         countMap[num]++;
     }
 
     // Find the number with the maximum frequency
     auto maxFreqPair = std::max_element(countMap.begin(), countMap.end(),
-                                        [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                                        [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+                                        {
                                             return a.second < b.second;
                                         });
 

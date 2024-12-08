@@ -11,12 +11,12 @@ class TriangleDetector
 public:
     TriangleDetector(const std::string model_path);
 
-
     void detect(const cv::Mat &input,
-                cv::Mat &output ,
-                int& pixel_distance);
+                cv::Mat &output,
+                int &pixel_distance);
+
 private:
-    int computePixelDistance(const cv::Mat& src , const cv::Rect &roi);
+    int computePixelDistance(const cv::Mat &src, const cv::Rect &roi);
     std::string modelPath_;
     std::shared_ptr<YOLO_V8> yoloDetector_;
 };
