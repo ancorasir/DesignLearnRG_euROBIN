@@ -1,0 +1,10 @@
+pos_on_board: [0.058, 0.0, 0.0]
+goal_pos_on_board: [0.058, 0.025, 0.0]
+pre_grasp_z: 0.03
+grasp_z: 0.005
+default_z_rot_degree: 110
+plug_in_z_rot_degree: 125
+default_gripper_open_pos: 150
+default_gripper_close_pos: 200
+default_vel: 2.0
+default_acc: 4.0

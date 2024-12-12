@@ -1,0 +1,14 @@
+pos_on_board: [0.0369, 0.095, 0.0]
+grip_slider_z: 0.004
+grip_slider_prep_height_offset: 0.02
+default_gripper_open_pos: 150
+default_gripper_close_pos: 160
+default_z_rot_degree: 90.0
+default_vel: 2.0
+default_acc: 4.0
+slide_vel: 0.6
+slide_acc: 1.5
+pixel_to_distance_ratio: -0.01
+max_y_increment: 0.017
+min_y_increment: -0.015
+release_gripper_pos: 130

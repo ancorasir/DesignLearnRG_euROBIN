@@ -1,0 +1,7 @@
+pos_on_board: [0.0, 0.014, 0.0]
+press_height: 0.002
+press_prep_height_offset: 0.02
+default_gripper_close_pos: 255
+default_z_rot_degree: 90.0
+default_vel: 2.0
+default_acc: 4.0

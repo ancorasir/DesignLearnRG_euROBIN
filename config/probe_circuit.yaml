@@ -1,0 +1,27 @@
+pen_grasp_pos: [0.1985, -0.02, 0.0]
+pen_grasp_height: 0.001
+pen_grasp_prep_height_offset: 0.03
+default_gripper_open_pos: 150
+default_gripper_close_pos: 230
+default_z_rot_degree: 0
+door_open_z_rot_degree: 90
+default_vel: 2.0
+default_acc: 4.0
+pull_out_y_offset: -0.1
+pull_up_z_offset: 0.1
+reorient_xy_pos: [0.32, 0.01]
+reorient_incline_degree: 30.0
+flip_door_goal_height: 0.046
+flip_door_x_offset: -0.035
+open_door_x_offset: 0.13
+open_door_goal_height: 0.05
+post_open_door_safe_x_offset: -0.05
+post_open_door_safe_goal_height: 0.15
+probe_circuit_xy: [0.141, 0.0523]
+probe_circuit_height: 0.088
+insert_back_safe_yz_offset: [-0.1, -0.05]
+insert_z_rot_degree: -2.0
+ready_to_insert_height_offset: 0.004
+fling_cable_xy_offset: [0.15, 0.15]
+insert_back_x_offset: -0.01
+soft_insert_back_y_offset: 0.015

@@ -1,0 +1,7 @@
+ur_robot_ip: "192.168.1.102"
+hande_gripper_serial_port: "/dev/ttyUSB0"
+vision_server_ip: "tcp://192.168.1.13:5556"
+observation_pose: [0.14914, -0.5282, 0.2678, 0.000, 3.1415, 0.00]
+observation_vel: 0.6
+observation_acc: 1.2
+default_gripper_close_pos: 250
