@@ -1,29 +1,26 @@
-# Design & Learning Research Group Solution for euROBIN MSVC @ IROS 2024
+# Design & Learning Research Group's (DLRG) Solution for euROBIN MSVC @ IROS 2024
 
 <div align="center">
-<b> Fastest Automated Task Board Solution Award</b>
+<b>Fastest Automated Task Board Solution Award</b>
 <br />
 <b><a href="https://msvc-dlrg.github.io">[Project Page]</a></b> | <b><a href="https://youtu.be/6FlQ3zCi53w">[Video]</a></b> | <b><a href="https://drive.google.com/drive/folders/1yhIDuubmL7S85B2c-S1hvZppHv4G-Wow?usp=sharing">[Data]</a></b>
 <br /><br />
 <p>
-Ning Guo, Xudong Han, Haoran Sun, Chaoyang Song
+Xudong Han<sup>1</sup>, Haoran Sun<sup>1, 2</sup>, Ning Guo<sup>1</sup>, Sheng Ge<sup>1</sup>, Jia Pan<sup>2</sup>, Fang Wan<sup>1</sup>, Chaoyang Song<sup>1</sup>
 <br />
-<a href="https://bionicdl.ancorasir.com">Design & Learning Research Group</a><br />
-<a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>
+<sup>1</sup> <a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>, <sup>2</sup> <a href="https://www.hku.hk/">The University of Hong Kong</a>
 </p>
-<br />
 <!-- <picture>
-<source media="(prefers-color-scheme: dark)" srcset="./images/logo/sustech_dark.png">
-<source media="(prefers-color-scheme: light)" srcset="./images/logo/sustech_light.png">
-<img src="./images/logo/sustech_light.png" width="250px" alt="logo">
+<source media="(prefers-color-scheme: dark)" srcset="https://msvc-dlrg.github.io/images/logo/sustech_dark.png">
+<source media="(prefers-color-scheme: light)" srcset="[.](https://msvc-dlrg.github.io)/images/logo/sustech_light.png">
+<img src="https://msvc-dlrg.github.io/images/logo/sustech_light.png" width="250px" alt="logo">
 </picture> -->
+<img src="https://msvc-dlrg.github.io/images/teaser.jpg" width="100%" alt="logo"></img>
 </div>
-
-![Teaser Image](assets/images/teaser.jpg)
 
 ## Overview
 
-This repository contains the code and brief introduction of our approach for [the euROBIN Manipulation Skill Versatility Challenge (MSVC)](https://sites.google.com/view/eurobin-msvc/) at [the 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2024)](https://iros2024-abudhabi.org/). For more details, please refer to the [project page](https://msvc-dlrg.github.io).
+This repository contains the code and brief introduction of DLRG's approach for [the euROBIN Manipulation Skill Versatility Challenge (MSVC)](https://sites.google.com/view/eurobin-msvc/) at [the 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2024)](https://iros2024-abudhabi.org/). For more details, please refer to the [project page](https://msvc-dlrg.github.io).
 
 ## Hardware Setup
 
