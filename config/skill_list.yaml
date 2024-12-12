@@ -1,0 +1,18 @@
+step_0:
+  id: 0
+  skill: find board & press button
+step_1:
+  id: 1
+  skill: move slider to setpoints on screen
+step_2:
+  id: 2
+  skill: plug in probe into test port
+step_3:
+  id: 3
+  skill: open door, probe circuit
+step_4:
+  id: 4
+  skill: wrap cable, replace probe
+step_5:
+  id: 5
+  skill: press stop trial button
