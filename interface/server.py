@@ -126,12 +126,13 @@ class RobotVis:
             color_intrinsic = color_intrinsics[cam]
             color_img = color_imgs[cam]
             if color_img is not None:
-                rr.log(
-                    f"/cameras/{cam}/color",
-                    rr.Pinhole(
-                        image_from_camera=color_intrinsic,
-                    ),
-                )
+                # rr.log(
+                #     f"/cameras/{cam}/color",
+                #     rr.Pinhole(
+                #         image_from_camera=color_intrinsic,
+                #         resolution=(color_img.shape[1], color_img.shape[0]),
+                #     ),
+                # )
                 rr.log(
                     f"/cameras/{cam}/color",
                     rr.Transform3D(
@@ -207,7 +208,7 @@ class RobotVis:
                 tcp_pose_list.append(tcp_pose)
                 color_position_list.append(color_position)
                 cv2.imwrite(
-                    os.path.join(save_path, f"color_img/frame_{count}.png"),
+                    os.path.join(save_path, f"color_img/frame_{count}.jpg"),
                     cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR),
                 )
                 count += 1
@@ -356,7 +357,10 @@ def rerun_log(
     color_image_path = os.path.join(data_path, "color_img")
     color_image_list = [
         cv2.cvtColor(
-            cv2.imread(os.path.join(color_image_path, f"frame_{i}.png")),
+            cv2.resize(
+                cv2.imread(os.path.join(color_image_path, f"frame_{i}.jpg")),
+                (640, 360),
+            ),
             cv2.COLOR_BGR2RGB,
         )
         for i in range(joint_angles_list.shape[0])
@@ -371,6 +375,7 @@ def rerun_log(
     rr.init("Robot Interface")
     rr.serve(open_browser=False, ws_port=4321, web_port=8000)
     rr.send_blueprint(robot_vis.blueprint())
+
 
     urdf_logger.log()
 
