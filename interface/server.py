@@ -401,7 +401,8 @@ def rerun_server(
 
     rr.init("Robot Interface")
     rr.serve(open_browser=False, ws_port=4321, web_port=8000)
-    rr.send_blueprint(robot_vis.blueprint())
+    # rr.send_blueprint(robot_vis.blueprint())
+    rr.log_file_from_path("./assets/blueprint.rbl")
 
     urdf_logger.log()
 
