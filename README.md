@@ -12,10 +12,10 @@ Xudong Han<sup>1</sup>, Haoran Sun<sup>1, 2</sup>, Ning Guo<sup>1</sup>, Sheng G
 </p>
 <!-- <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://msvc-dlrg.github.io/images/logo/sustech_dark.png">
-<source media="(prefers-color-scheme: light)" srcset="[.](https://msvc-dlrg.github.io)/images/logo/sustech_light.png">
+<source media="(prefers-color-scheme: light)" srcset="https://msvc-dlrg.github.io/images/logo/sustech_light.png">
 <img src="https://msvc-dlrg.github.io/images/logo/sustech_light.png" width="250px" alt="logo">
 </picture> -->
-<img src="https://msvc-dlrg.github.io/images/teaser.jpg" width="100%" alt="logo"></img>
+<img src="https://msvc-dlrg.github.io/images/teaser.jpg" width="100%" alt="teaser"></img>
 </div>
 
 ## Overview
