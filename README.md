@@ -8,7 +8,7 @@
 <p>
 Xudong Han<sup>1</sup>, Haoran Sun<sup>1, 2</sup>, Ning Guo<sup>1</sup>, Sheng Ge<sup>1</sup>, Jia Pan<sup>2</sup>, Fang Wan<sup>1</sup>, Chaoyang Song<sup>1</sup>
 <br />
-<sup>1</sup> <a href="https://www.sustech.edu.cn/en">Southern University of Science and Technology</a>, <sup>2</sup> <a href="https://www.hku.hk/">The University of Hong Kong</a>
+<sup>1</sup> Southern University of Science and Technology, <sup>2</sup> The University of Hong Kong
 </p>
 <!-- <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://msvc-dlrg.github.io/images/logo/sustech_dark.png">
