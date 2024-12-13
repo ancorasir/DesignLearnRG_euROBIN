@@ -377,7 +377,6 @@ def rerun_log(
     # rr.send_blueprint(robot_vis.blueprint())
     rr.log_file_from_path("./assets/blueprint.rbl")
 
-
     urdf_logger.log()
 
     robot_vis.log(
